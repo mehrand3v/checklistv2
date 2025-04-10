@@ -1,4 +1,4 @@
-import Layout from "@/components/layout/Layout";
+import RootLayout from "@/components/layout/RootLayout";
 
 import NotFound from "@/pages/NotFound";
 import ErrorPage from "@/pages/ErrorPage";
@@ -22,16 +22,13 @@ const PlaceholderPage = () => (
 const routes = [
   {
     path: "/",
-    element: <Layout />,
+    element: <RootLayout />,
     errorElement: <ErrorPage />, // Handles crashes, API failures, etc.
     children: [
       { index: true, element: <PlaceholderPage /> }, // Default to  Dashboard
       { path: "customers", element: <PlaceholderPage /> }, // Customer list
       { path: "sales", element: <PlaceholderPage /> }, // Sales list
-      //   { path: "customers/billing", element: <PlaceholderPage /> }, // Billing statement page
-      //   { path: "customers/transactions", element: <PlaceholderPage /> }, // Transaction history page
-      //   { path: "customers/transactions/new", element: <PlaceholderPage /> }, // Add new transaction form
-      //   { path: "transactions", element: <PlaceholderPage /> }, // Direct transactions page
+
       { path: "dashboard", element: <Navigate to="/" replace /> }, // Redirect to default
       { path: "*", element: <NotFound /> }, // 404 Not Found
     ],
