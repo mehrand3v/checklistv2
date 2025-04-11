@@ -50,21 +50,25 @@ export default function CategoryPage() {
     if (categoryIndex > 0) {
       const prevCategory = inspectionItems[categoryIndex - 1];
       navigate(`/inspection/${prevCategory.id}`);
+      // Scroll to top of page
+      window.scrollTo(0, 0);
     } else {
       // If we're at the first category, go back to store info
       navigate("/");
     }
   };
 
-  const goToNextCategory = () => {
-    if (categoryIndex < inspectionItems.length - 1) {
-      const nextCategory = inspectionItems[categoryIndex + 1];
-      navigate(`/inspection/${nextCategory.id}`);
-    } else {
-      // If we're at the last category, go to review
-      navigate("/review");
-    }
-  };
+ const goToNextCategory = () => {
+   if (categoryIndex < inspectionItems.length - 1) {
+     const nextCategory = inspectionItems[categoryIndex + 1];
+     navigate(`/inspection/${nextCategory.id}`);
+     // Scroll to top of page
+     window.scrollTo(0, 0);
+   } else {
+     // If we're at the last category, go to review
+     navigate("/review");
+   }
+ };
 
   if (!category) {
     return (
