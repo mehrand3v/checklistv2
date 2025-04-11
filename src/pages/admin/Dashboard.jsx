@@ -28,6 +28,7 @@ import { DataTable } from "@/components/admin/DataTable";
 import { useAuth } from "@/context/AuthContext";
 import { getAllIssues, getAllInspections } from "@/services/api";
 import { toast } from "sonner";
+import { IssueDetailDialog } from "@/components/admin/IssueDetailDialog";
 
 // You'll need to run: npx shadcn-ui@latest add tabs
 
@@ -139,11 +140,18 @@ export default function AdminDashboard() {
       header: "Issue",
       accessorKey: "description",
       cell: ({ row }) => (
-        <div
-          className="max-w-xs truncate"
-          title={row.original?.description || ""}
-        >
-          {row.original?.description || "N/A"}
+        <div className="max-w-xs" title={row.original?.description || ""}>
+          <p className="font-medium">{row.original?.description || "N/A"}</p>
+          {row.original?.notes && (
+            <p className="text-sm text-muted-foreground mt-1 truncate">
+              Notes: {row.original.notes}
+            </p>
+          )}
+          {row.original?.hasPhoto && (
+            <Badge variant="outline" className="mt-1">
+              Has Photo
+            </Badge>
+          )}
         </div>
       ),
     },
@@ -151,9 +159,17 @@ export default function AdminDashboard() {
       header: "Status",
       accessorKey: "fixed",
       cell: ({ row }) => (
-        <Badge variant={row.original?.fixed ? "outline" : "destructive"}>
-          {row.original?.fixed ? "Fixed" : "Open"}
-        </Badge>
+        <div>
+          <Badge
+            variant={row.original?.fixed ? "success" : "destructive"}
+            className="mb-1"
+          >
+            {row.original?.fixed ? "Fixed" : "Open"}
+          </Badge>
+          {row.original?.fixed && (
+            <p className="text-xs text-muted-foreground">Fixed by staff</p>
+          )}
+        </div>
       ),
     },
     {
@@ -162,8 +178,40 @@ export default function AdminDashboard() {
       cell: ({ row }) => (
         <div>
           {row.original?.submittedAt
-            ? new Date(row.original.submittedAt).toLocaleDateString()
+            ? new Date(row.original.submittedAt).toLocaleString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
             : "N/A"}
+        </div>
+      ),
+    },
+    {
+      header: "Action",
+      id: "actions",
+      cell: ({ row }) => (
+        <div className="flex justify-end">
+          <IssueDetailDialog
+            issue={row.original}
+            onStatusChange={(inspectionId, categoryId, itemId, fixed) => {
+              // Update the local state when status changes
+              setIssues((prevIssues) =>
+                prevIssues.map((issue) => {
+                  if (
+                    issue.inspectionId === inspectionId &&
+                    issue.categoryId === categoryId &&
+                    issue.itemId === itemId
+                  ) {
+                    return { ...issue, fixed };
+                  }
+                  return issue;
+                })
+              );
+            }}
+          />
         </div>
       ),
     },
@@ -187,9 +235,21 @@ export default function AdminDashboard() {
       cell: ({ row }) => (
         <div>
           {row.original?.inspectionDate
-            ? new Date(row.original.inspectionDate).toLocaleDateString()
+            ? new Date(row.original.inspectionDate).toLocaleString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
             : row.original?.clientDate
-            ? new Date(row.original.clientDate).toLocaleDateString()
+            ? new Date(row.original.clientDate).toLocaleString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
             : "N/A"}
         </div>
       ),
@@ -220,10 +280,48 @@ export default function AdminDashboard() {
               }, 0)
             : 0;
 
+        const fixedIssueCount =
+          row.original &&
+          row.original.categories &&
+          Array.isArray(row.original.categories)
+            ? row.original.categories.reduce((count, category) => {
+                // Add defensive check for items
+                if (
+                  category &&
+                  category.items &&
+                  Array.isArray(category.items)
+                ) {
+                  return (
+                    count +
+                    category.items.filter(
+                      (item) => item && item.status === "no" && item.fixed
+                    ).length
+                  );
+                }
+                return count;
+              }, 0)
+            : 0;
+
         return (
-          <Badge variant={issueCount > 0 ? "destructive" : "outline"}>
-            {issueCount} {issueCount === 1 ? "Issue" : "Issues"}
-          </Badge>
+          <div className="space-y-1">
+            <Badge
+              variant={
+                issueCount === 0
+                  ? "outline"
+                  : issueCount === fixedIssueCount && issueCount > 0
+                  ? "success"
+                  : "destructive"
+              }
+            >
+              {issueCount} {issueCount === 1 ? "Issue" : "Issues"}
+            </Badge>
+
+            {issueCount > 0 && fixedIssueCount > 0 && (
+              <div className="text-xs text-muted-foreground">
+                {fixedIssueCount} fixed / {issueCount - fixedIssueCount} open
+              </div>
+            )}
+          </div>
         );
       },
     },
@@ -233,7 +331,13 @@ export default function AdminDashboard() {
       cell: ({ row }) => (
         <div>
           {row.original?.submittedAt
-            ? new Date(row.original.submittedAt).toLocaleDateString()
+            ? new Date(row.original.submittedAt).toLocaleString(undefined, {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
             : "N/A"}
         </div>
       ),
@@ -265,7 +369,13 @@ export default function AdminDashboard() {
             item.description ? `"${item.description.replace(/"/g, '""')}"` : "",
             item.fixed ? "Fixed" : "Open",
             item.submittedAt
-              ? new Date(item.submittedAt).toLocaleDateString()
+              ? new Date(item.submittedAt).toLocaleString(undefined, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
               : "N/A",
           ];
           csvContent += row.join(",") + "\n";
@@ -301,13 +411,31 @@ export default function AdminDashboard() {
             item.storeNumber || "",
             item.inspectedBy ? `"${item.inspectedBy.replace(/"/g, '""')}"` : "",
             item.inspectionDate
-              ? new Date(item.inspectionDate).toLocaleDateString()
+              ? new Date(item.inspectionDate).toLocaleString(undefined, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
               : item.clientDate
-              ? new Date(item.clientDate).toLocaleDateString()
+              ? new Date(item.clientDate).toLocaleString(undefined, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
               : "N/A",
             issueCount,
             item.submittedAt
-              ? new Date(item.submittedAt).toLocaleDateString()
+              ? new Date(item.submittedAt).toLocaleString(undefined, {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
               : "N/A",
           ];
           csvContent += row.join(",") + "\n";
