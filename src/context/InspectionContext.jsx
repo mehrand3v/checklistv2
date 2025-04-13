@@ -1,6 +1,7 @@
 // src/context/InspectionContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
-import inspectionItems from "@/config/inspectionItems";
+import { getInspectionItems } from "@/services/api"; // Import the new API function
+import { toast } from "sonner";
 
 const InspectionContext = createContext(null);
 
@@ -17,11 +18,42 @@ export function InspectionProvider({ children }) {
         };
   });
 
-  const [inspectionData, setInspectionData] = useState(() => {
-    // Try to load from localStorage on initial render
-    const savedData = localStorage.getItem("csr_inspection_data");
-    return savedData ? JSON.parse(savedData) : [...inspectionItems];
-  });
+  const [inspectionData, setInspectionData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Load categories and items from Firestore
+  useEffect(() => {
+    const loadItems = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Try to load from localStorage first (for existing inspections in progress)
+        const savedData = localStorage.getItem("csr_inspection_data");
+        if (savedData) {
+          setInspectionData(JSON.parse(savedData));
+        } else {
+          // If nothing in localStorage, fetch from Firestore
+          const result = await getInspectionItems();
+          if (result.success) {
+            setInspectionData(result.categories);
+          } else {
+            setError("Failed to load inspection items: " + result.error);
+            toast.error("Failed to load inspection items");
+          }
+        }
+      } catch (err) {
+        console.error("Error loading inspection items:", err);
+        setError("Error loading inspection items: " + err.message);
+        toast.error("Error loading inspection data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadItems();
+  }, []);
 
   // Save to localStorage whenever data changes
   useEffect(() => {
@@ -29,7 +61,12 @@ export function InspectionProvider({ children }) {
   }, [storeInfo]);
 
   useEffect(() => {
-    localStorage.setItem("csr_inspection_data", JSON.stringify(inspectionData));
+    if (inspectionData.length > 0) {
+      localStorage.setItem(
+        "csr_inspection_data",
+        JSON.stringify(inspectionData)
+      );
+    }
   }, [inspectionData]);
 
   // Calculate completion status for progress indicator
@@ -71,9 +108,6 @@ export function InspectionProvider({ children }) {
     );
   };
 
-  // Handle image capture and storage
-
-
   // Get all issues (items with status = "no")
   const getAllIssues = () => {
     const issues = [];
@@ -99,21 +133,33 @@ export function InspectionProvider({ children }) {
     localStorage.removeItem("csr_inspection_data");
     localStorage.removeItem("csr_store_info");
 
-    // Reset all photos
-    inspectionData.forEach((category) => {
-      category.items.forEach((item) => {
-        if (item.photoUrl) {
-          localStorage.removeItem(`csr_photo_${category.id}_${item.id}`);
-        }
-      });
-    });
-
     // Reset state
-    setInspectionData([...inspectionItems]);
     setStoreInfo({
       storeNumber: "",
       inspectedBy: "",
     });
+
+    // We'll reload the inspection data from the server
+    setInspectionData([]);
+    setLoading(true);
+
+    // Load fresh inspection items from Firestore
+    getInspectionItems()
+      .then((result) => {
+        if (result.success) {
+          setInspectionData(result.categories);
+        } else {
+          console.error("Failed to reload inspection items:", result.error);
+          toast.error("Failed to reset inspection form");
+        }
+      })
+      .catch((err) => {
+        console.error("Error reloading inspection items:", err);
+        toast.error("Error resetting the form");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   // Check if all items in a category have been completed
@@ -140,7 +186,6 @@ export function InspectionProvider({ children }) {
           status: item.status,
           fixed: item.fixed,
           notes: item.notes,
-          hasPhoto: !!item.photoUrl,
         })),
       })),
     };
@@ -157,12 +202,13 @@ export function InspectionProvider({ children }) {
     setStoreInfo,
     inspectionData,
     updateInspectionItem,
-    
     getCompletionStatus,
     getAllIssues,
     resetInspection,
     isCategoryComplete,
     submitInspection,
+    loading,
+    error,
   };
 
   return (

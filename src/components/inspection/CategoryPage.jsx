@@ -10,19 +10,38 @@ import {
   Pizza,
   Brush,
   ClipboardCheck,
+  ShoppingCart,
+  Truck,
+  Building,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import InspectionItem from "./InspectionItem";
 import { useInspection } from "@/context/InspectionContext";
-import inspectionItems from "@/config/inspectionItems";
 
-// You'll need to run: npx shadcn-ui@latest add progress
+// Dynamic icon mapping function
+const IconComponent = ({ iconName, className }) => {
+  const iconMap = {
+    Utensils: Utensils,
+    Coffee: Coffee,
+    Pizza: Pizza,
+    Brush: Brush,
+    ClipboardCheck: ClipboardCheck,
+    ShoppingCart: ShoppingCart,
+    Truck: Truck,
+    Building: Building,
+  };
+
+  const Icon = iconMap[iconName] || Utensils; // Default to Utensils if not found
+
+  return <Icon className={className} />;
+};
 
 export default function CategoryPage() {
   const navigate = useNavigate();
   const { categoryId } = useParams();
-  const { inspectionData, getCompletionStatus, isCategoryComplete } =
+  const { inspectionData, getCompletionStatus, isCategoryComplete, loading } =
     useInspection();
 
   // Find the current category
@@ -32,8 +51,8 @@ export default function CategoryPage() {
 
   // Get the index of the current category
   const categoryIndex = useMemo(() => {
-    return inspectionItems.findIndex((cat) => cat.id === categoryId);
-  }, [categoryId]);
+    return inspectionData.findIndex((cat) => cat.id === categoryId);
+  }, [categoryId, inspectionData]);
 
   // Get completion status
   const completionStatus = useMemo(() => {
@@ -48,7 +67,7 @@ export default function CategoryPage() {
   // Navigation functions
   const goToPreviousCategory = () => {
     if (categoryIndex > 0) {
-      const prevCategory = inspectionItems[categoryIndex - 1];
+      const prevCategory = inspectionData[categoryIndex - 1];
       navigate(`/inspection/${prevCategory.id}`);
       // Scroll to top of page
       window.scrollTo(0, 0);
@@ -58,17 +77,28 @@ export default function CategoryPage() {
     }
   };
 
- const goToNextCategory = () => {
-   if (categoryIndex < inspectionItems.length - 1) {
-     const nextCategory = inspectionItems[categoryIndex + 1];
-     navigate(`/inspection/${nextCategory.id}`);
-     // Scroll to top of page
-     window.scrollTo(0, 0);
-   } else {
-     // If we're at the last category, go to review
-     navigate("/review");
-   }
- };
+  const goToNextCategory = () => {
+    if (categoryIndex < inspectionData.length - 1) {
+      const nextCategory = inspectionData[categoryIndex + 1];
+      navigate(`/inspection/${nextCategory.id}`);
+      // Scroll to top of page
+      window.scrollTo(0, 0);
+    } else {
+      // If we're at the last category, go to review
+      navigate("/review");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container py-4 max-w-md mx-auto">
+        <div className="flex flex-col items-center justify-center space-y-4 py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p>Loading inspection data...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!category) {
     return (
@@ -81,30 +111,12 @@ export default function CategoryPage() {
     );
   }
 
-  // Get the appropriate icon based on category ID
-  const getCategoryIcon = () => {
-    switch (category.id) {
-      case "food-prep":
-        return <Utensils className="w-6 h-6 mr-2" />;
-      case "beverage-areas":
-        return <Coffee className="w-6 h-6 mr-2" />;
-      case "food-display":
-        return <Pizza className="w-6 h-6 mr-2" />;
-      case "cleaning-safety":
-        return <Brush className="w-6 h-6 mr-2" />;
-      case "compliance-facilities":
-        return <ClipboardCheck className="w-6 h-6 mr-2" />;
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="container py-4 max-w-md mx-auto">
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold flex items-center">
-            {getCategoryIcon()}
+            <IconComponent iconName={category.icon} className="w-6 h-6 mr-2" />
             {category.title}
             {categoryComplete && (
               <CheckCircle2 className="ml-2 text-green-500 w-5 h-5" />
@@ -141,7 +153,7 @@ export default function CategoryPage() {
         </Button>
 
         <Button onClick={goToNextCategory}>
-          {categoryIndex < inspectionItems.length - 1 ? "Next" : "Review"}
+          {categoryIndex < inspectionData.length - 1 ? "Next" : "Review"}
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>

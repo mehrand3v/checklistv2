@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useInspection } from "@/context/InspectionContext"; // Keep this import
+import { useInspection } from "@/context/InspectionContext";
 
 export default function InspectionItem({ categoryId, item }) {
   const { updateInspectionItem } = useInspection();

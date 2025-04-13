@@ -14,36 +14,18 @@ import { Input } from "@/components/ui/input";
 import {
   BarChart3,
   FileText,
-  Filter,
   Search,
   Store,
   FileDown,
-  Utensils,
-  Coffee,
-  Pizza,
-  Brush,
-  ClipboardCheck,
+  Settings,
+  Database,
 } from "lucide-react";
 import { DataTable } from "@/components/admin/DataTable";
 import { useAuth } from "@/context/AuthContext";
 import { getAllIssues, getAllInspections } from "@/services/api";
 import { toast } from "sonner";
 import { IssueDetailDialog } from "@/components/admin/IssueDetailDialog";
-
-// You'll need to run: npx shadcn-ui@latest add tabs
-
-// Helper to get category icon
-const getCategoryIcon = (categoryId) => {
-  const icons = {
-    "food-prep": <Utensils className="h-4 w-4" />,
-    "beverage-areas": <Coffee className="h-4 w-4" />,
-    "food-display": <Pizza className="h-4 w-4" />,
-    "cleaning-safety": <Brush className="h-4 w-4" />,
-    "compliance-facilities": <ClipboardCheck className="h-4 w-4" />,
-  };
-
-  return icons[categoryId] || <FileText className="h-4 w-4" />;
-};
+import CategoryManagement from "@/components/admin/CategoryManagement";
 
 export default function AdminDashboard() {
   const { currentUser } = useAuth();
@@ -129,9 +111,6 @@ export default function AdminDashboard() {
       accessorKey: "categoryTitle",
       cell: ({ row }) => (
         <div className="flex items-center">
-          {row.original?.categoryId
-            ? getCategoryIcon(row.original.categoryId)
-            : null}
           <span className="ml-2">{row.original?.categoryTitle || "N/A"}</span>
         </div>
       ),
@@ -146,11 +125,6 @@ export default function AdminDashboard() {
             <p className="text-sm text-muted-foreground mt-1 truncate">
               Notes: {row.original.notes}
             </p>
-          )}
-          {row.original?.hasPhoto && (
-            <Badge variant="outline" className="mt-1">
-              Has Photo
-            </Badge>
           )}
         </div>
       ),
@@ -521,36 +495,6 @@ export default function AdminDashboard() {
       </div>
 
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="relative w-full sm:w-auto">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search..."
-              className="pl-8 w-full sm:w-[300px]"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <Button
-            variant="outline"
-            onClick={() =>
-              exportToCsv(
-                activeTab === "issues" ? filteredIssues : filteredInspections,
-                `csr-${activeTab}-${new Date().toISOString().split("T")[0]}`
-              )
-            }
-            disabled={
-              activeTab === "issues"
-                ? filteredIssues.length === 0
-                : filteredInspections.length === 0
-            }
-          >
-            <FileDown className="mr-2 h-4 w-4" />
-            Export to CSV
-          </Button>
-        </div>
-
         <Tabs
           defaultValue="issues"
           className="w-full"
@@ -559,9 +503,36 @@ export default function AdminDashboard() {
           <TabsList className="mb-4">
             <TabsTrigger value="issues">Issues</TabsTrigger>
             <TabsTrigger value="inspections">Inspections</TabsTrigger>
+            <TabsTrigger value="categories">Categories & Items</TabsTrigger>
           </TabsList>
 
           <TabsContent value="issues">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search issues..."
+                  className="pl-8 w-full sm:w-[300px]"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={() =>
+                  exportToCsv(
+                    filteredIssues,
+                    `csr-issues-${new Date().toISOString().split("T")[0]}`
+                  )
+                }
+                disabled={filteredIssues.length === 0}
+              >
+                <FileDown className="mr-2 h-4 w-4" />
+                Export to CSV
+              </Button>
+            </div>
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-xl">All Issues</CardTitle>
@@ -580,6 +551,32 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="inspections">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search inspections..."
+                  className="pl-8 w-full sm:w-[300px]"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={() =>
+                  exportToCsv(
+                    filteredInspections,
+                    `csr-inspections-${new Date().toISOString().split("T")[0]}`
+                  )
+                }
+                disabled={filteredInspections.length === 0}
+              >
+                <FileDown className="mr-2 h-4 w-4" />
+                Export to CSV
+              </Button>
+            </div>
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-xl">Inspections</CardTitle>
@@ -593,6 +590,20 @@ export default function AdminDashboard() {
                   data={filteredInspections}
                   loading={loading}
                 />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="categories">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xl">Categories & Items</CardTitle>
+                <CardDescription>
+                  Manage inspection categories and items
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CategoryManagement />
               </CardContent>
             </Card>
           </TabsContent>

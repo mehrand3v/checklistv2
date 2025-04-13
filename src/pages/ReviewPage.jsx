@@ -9,6 +9,7 @@ import {
   SendHorizonal,
   Store,
   User,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,11 +24,6 @@ import { useInspection } from "@/context/InspectionContext";
 import { submitInspection } from "@/services/api";
 import { toast } from "sonner";
 
-// You'll need to run:
-// npx shadcn-ui@latest add accordion
-// npx shadcn-ui@latest add badge
-// npm install sonner
-
 export default function ReviewPage() {
   const navigate = useNavigate();
   const {
@@ -35,6 +31,7 @@ export default function ReviewPage() {
     inspectionData,
     getCompletionStatus,
     submitInspection: prepareSubmission,
+    loading,
   } = useInspection();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -91,6 +88,17 @@ export default function ReviewPage() {
     animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
     exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
   };
+
+  if (loading) {
+    return (
+      <div className="container py-6 max-w-md mx-auto">
+        <div className="flex flex-col items-center justify-center space-y-4 py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p>Loading inspection data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -189,8 +197,17 @@ export default function ReviewPage() {
               onClick={handleSubmit}
               disabled={!canSubmit || isSubmitting}
             >
-              {isSubmitting ? "Submitting..." : "Submit Inspection"}
-              <SendHorizonal className="ml-2 h-4 w-4" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  Submit Inspection
+                  <SendHorizonal className="ml-2 h-4 w-4" />
+                </>
+              )}
             </Button>
           </div>
         </CardContent>
