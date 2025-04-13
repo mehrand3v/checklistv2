@@ -72,22 +72,7 @@ export function InspectionProvider({ children }) {
   };
 
   // Handle image capture and storage
-  const saveItemPhoto = (categoryId, itemId, photoData) => {
-    // Store the base64 image data in local storage
-    try {
-      // First, save the photo to our inspection data state
-      updateInspectionItem(categoryId, itemId, { photoUrl: photoData });
 
-      // Also store it in localStorage with a unique key
-      const photoKey = `csr_photo_${categoryId}_${itemId}`;
-      localStorage.setItem(photoKey, photoData);
-
-      return true;
-    } catch (error) {
-      console.error("Error saving photo:", error);
-      return false;
-    }
-  };
 
   // Get all issues (items with status = "no")
   const getAllIssues = () => {
@@ -172,7 +157,7 @@ export function InspectionProvider({ children }) {
     setStoreInfo,
     inspectionData,
     updateInspectionItem,
-    saveItemPhoto,
+    
     getCompletionStatus,
     getAllIssues,
     resetInspection,

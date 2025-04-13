@@ -10,10 +10,9 @@ const inspectionItems = [
       {
         id: 1,
         description: "Is the hotdog/Grill Area clean?",
-        status: null, // null, "yes", or "no"
-        fixed: false, // only applies if status is "no"
+        status: null,
+        fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 2,
@@ -22,7 +21,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 3,
@@ -30,7 +28,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 4,
@@ -38,7 +35,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 5,
@@ -46,7 +42,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 6,
@@ -54,7 +49,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
     ],
   },
@@ -69,7 +63,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 8,
@@ -77,7 +70,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 9,
@@ -86,7 +78,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 10,
@@ -94,7 +85,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 11,
@@ -103,7 +93,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
     ],
   },
@@ -118,7 +107,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 13,
@@ -127,7 +115,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
     ],
   },
@@ -142,7 +129,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 15,
@@ -150,7 +136,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 16,
@@ -158,7 +143,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 17,
@@ -166,7 +150,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 18,
@@ -174,7 +157,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 19,
@@ -183,7 +165,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
     ],
   },
@@ -198,7 +179,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 21,
@@ -207,7 +187,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 22,
@@ -215,7 +194,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 23,
@@ -223,7 +201,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 24,
@@ -231,7 +208,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 25,
@@ -239,7 +215,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
       {
         id: 26,
@@ -247,7 +222,6 @@ const inspectionItems = [
         status: null,
         fixed: false,
         notes: "",
-        photoUrl: "",
       },
     ],
   },

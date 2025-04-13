@@ -25,16 +25,11 @@ export const submitInspection = async (inspectionData) => {
     const processedCategories = inspectionData.categories.map((category) => ({
       ...category,
       items: category.items.map((item) => {
-        // If there's a photo, retrieve it from localStorage
-        let photoData = null;
-        if (item.hasPhoto) {
-          const photoKey = `csr_photo_${category.id}_${item.id}`;
-          photoData = localStorage.getItem(photoKey);
-        }
+
 
         return {
-          ...item,
-          photoData: photoData || null,
+          ...item
+          
         };
       }),
     }));

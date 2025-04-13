@@ -5,18 +5,10 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import CameraComponent from "./CameraComponent";
-import { useInspection } from "@/context/InspectionContext";
-
-// You'll need to run:
-// npx shadcn-ui@latest add card
-// npx shadcn-ui@latest add label
-// npx shadcn-ui@latest add radio-group
-// npx shadcn-ui@latest add textarea
-// npx shadcn-ui@latest add checkbox
+import { useInspection } from "@/context/InspectionContext"; // Keep this import
 
 export default function InspectionItem({ categoryId, item }) {
-  const { updateInspectionItem, saveItemPhoto } = useInspection();
+  const { updateInspectionItem } = useInspection();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleStatusChange = (value) => {
@@ -34,10 +26,6 @@ export default function InspectionItem({ categoryId, item }) {
 
   const handleNotesChange = (e) => {
     updateInspectionItem(categoryId, item.id, { notes: e.target.value });
-  };
-
-  const handlePhotoCapture = (photoData) => {
-    saveItemPhoto(categoryId, item.id, photoData);
   };
 
   return (
@@ -81,14 +69,6 @@ export default function InspectionItem({ categoryId, item }) {
                 value={item.notes}
                 onChange={handleNotesChange}
                 className="min-h-20"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Photo:</Label>
-              <CameraComponent
-                onPhotoCapture={handlePhotoCapture}
-                existingPhoto={item.photoUrl}
               />
             </div>
           </div>

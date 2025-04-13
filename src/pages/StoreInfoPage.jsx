@@ -16,15 +16,17 @@ import {
 import { useInspection } from "@/context/InspectionContext";
 import inspectionItems from "@/config/inspectionItems";
 
-// You'll need to run:
-// npx shadcn-ui@latest add input
-// Also install: npm install framer-motion
+
 
 export default function StoreInfoPage() {
   const navigate = useNavigate();
-  const { storeInfo, setStoreInfo } = useInspection();
+  const { storeInfo, setStoreInfo, resetInspection } = useInspection();
   const [isFormValid, setIsFormValid] = useState(false);
 
+  useEffect(() => {
+    // Clear any existing inspection data when the page loads
+    resetInspection();
+  }, []);
   // Form validation
   useEffect(() => {
     const { storeNumber, inspectedBy } = storeInfo;
