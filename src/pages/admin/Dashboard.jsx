@@ -70,6 +70,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Add this new component for viewing inspection details
 function InspectionDetailDialog({ inspection, open, onOpenChange }) {
@@ -903,13 +904,13 @@ export default function AdminDashboard() {
 
   return (
     <div className="container py-6">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Admin Dashboard</h1>
 
       {/* Store Filter */}
       <div className="mb-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-xl">Store Overview</CardTitle>
+            <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Store Overview</CardTitle>
             <CardDescription>Select a store to view detailed statistics</CardDescription>
           </CardHeader>
           <CardContent>
@@ -991,99 +992,127 @@ export default function AdminDashboard() {
           onValueChange={setActiveTab}
         >
           <TabsList className="mb-6">
-            <TabsTrigger value="inspections">Inspections</TabsTrigger>
-            <TabsTrigger value="categories">Categories & Items</TabsTrigger>
+            <TabsTrigger 
+              value="inspections" 
+              className="flex items-center gap-2 data-[state=active]:bg-blue-100 dark:data-[state=active]:bg-blue-900/50 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300"
+            >
+              <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 transition-transform duration-200 group-hover:scale-110" />
+              <span className="font-medium">Inspections</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="categories" 
+              className="flex items-center gap-2 data-[state=active]:bg-purple-100 dark:data-[state=active]:bg-purple-900/50 data-[state=active]:text-purple-700 dark:data-[state=active]:text-purple-300"
+            >
+              <Database className="h-5 w-5 text-purple-600 dark:text-purple-400 transition-transform duration-200 group-hover:scale-110" />
+              <span className="font-medium">Categories & Items</span>
+            </TabsTrigger>
           </TabsList>
 
           <div className="mt-4">
-            <TabsContent value="inspections">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xl">Inspections</CardTitle>
-                  <CardDescription>
-                    View inspection history
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:space-x-2 mb-4">
-                    <div className="relative flex-1 w-full sm:w-auto">
-                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-blue-500" />
-                      <Input
-                        placeholder="Search inspections..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-8 w-full"
-                      />
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-2" />
-                          Export
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => {
-                          if (filteredInspections.length > 0) {
-                            exportToCsv(filteredInspections, "inspections.csv");
-                          } else {
-                            toast.error("No data to export");
-                          }
-                        }}>
-                          <FileText className="h-4 w-4 mr-2 text-blue-500" />
-                          Export as CSV
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => {
-                          if (filteredInspections.length > 0) {
-                            try {
-                              generatePDF(filteredInspections);
-                            } catch (error) {
-                              console.error("Error in PDF generation:", error);
-                              toast.error("Failed to generate PDF: " + (error.message || "Unknown error"));
-                            }
-                          } else {
-                            toast.error("No data to export");
-                          }
-                        }}>
-                          <FileText className="h-4 w-4 mr-2 text-blue-500" />
-                          Export as PDF
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <div className="overflow-x-auto -mx-4 sm:mx-0">
-                    <div className="min-w-full inline-block align-middle">
-                      <DataTable
-                        columns={inspectionColumns}
-                        data={getPaginatedData(filteredInspections)}
-                        loading={loading}
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    {renderPagination()}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+            <AnimatePresence>
+              <TabsContent value="inspections" key="inspections">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Inspections</CardTitle>
+                      <CardDescription>
+                        View inspection history
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:space-x-2 mb-4">
+                        <div className="relative flex-1 w-full sm:w-auto">
+                          <Search className="absolute left-2 top-2.5 h-4 w-4 text-blue-500" />
+                          <Input
+                            placeholder="Search inspections..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-8 w-full"
+                          />
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Download className="h-4 w-4 mr-2" />
+                              Export
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => {
+                              if (filteredInspections.length > 0) {
+                                exportToCsv(filteredInspections, "inspections.csv");
+                              } else {
+                                toast.error("No data to export");
+                              }
+                            }}>
+                              <FileText className="h-4 w-4 mr-2 text-blue-500" />
+                              Export as CSV
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              if (filteredInspections.length > 0) {
+                                try {
+                                  generatePDF(filteredInspections);
+                                } catch (error) {
+                                  console.error("Error in PDF generation:", error);
+                                  toast.error("Failed to generate PDF: " + (error.message || "Unknown error"));
+                                }
+                              } else {
+                                toast.error("No data to export");
+                              }
+                            }}>
+                              <FileText className="h-4 w-4 mr-2 text-blue-500" />
+                              Export as PDF
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <div className="overflow-x-auto -mx-4 sm:mx-0">
+                        <div className="min-w-full inline-block align-middle">
+                          <DataTable
+                            columns={inspectionColumns}
+                            data={getPaginatedData(filteredInspections)}
+                            loading={loading}
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        {renderPagination()}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </TabsContent>
 
-            <TabsContent value="categories">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xl">Categories & Items</CardTitle>
-                  <CardDescription>
-                    Manage inspection categories and items
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto -mx-4 sm:mx-0">
-                    <div className="min-w-full inline-block align-middle">
-                      <CategoryManagement />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+              <TabsContent value="categories" key="categories">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Categories & Items</CardTitle>
+                      <CardDescription>
+                        Manage inspection categories and items
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto -mx-4 sm:mx-0">
+                        <div className="min-w-full inline-block align-middle">
+                          <CategoryManagement />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </TabsContent>
+            </AnimatePresence>
           </div>
         </Tabs>
       </div>
