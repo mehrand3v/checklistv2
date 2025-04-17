@@ -113,6 +113,23 @@ export const getAllInspections = async (limitCount = 50) => {
   }
 };
 
+// Delete an inspection
+export const deleteInspection = async (inspectionId) => {
+  try {
+    if (!inspectionId) {
+      throw new Error('Inspection ID is required');
+    }
+
+    const docRef = doc(db, COLLECTIONS.INSPECTIONS, inspectionId);
+    await deleteDoc(docRef);
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting inspection:", error);
+    return { success: false, error: error.message };
+  }
+};
+
 // Update the "fixed" status for an issue
 export const updateIssueStatus = async (
   inspectionId,
