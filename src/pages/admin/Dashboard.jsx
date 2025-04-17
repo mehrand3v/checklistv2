@@ -325,7 +325,7 @@ const generatePDF = async (inspections) => {
 };
 
 export default function AdminDashboard() {
-  const { currentUser } = useAuth();
+  const { currentUser, canDelete, canEdit } = useAuth();
   const [issues, setIssues] = useState([]);
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -652,7 +652,7 @@ export default function AdminDashboard() {
       header: "Actions",
       id: "actions",
       cell: ({ row }) => (
-        <div className="flex space-x-2">
+        <div className="flex items-center space-x-1">
           <Button
             variant="ghost"
             size="icon"
@@ -664,14 +664,16 @@ export default function AdminDashboard() {
           >
             <Eye className="h-4 w-4 text-blue-500" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => handleEditInspection(row.original)}
-            className="hover:bg-amber-50 dark:hover:bg-amber-900/20"
-          >
-            <Edit className="h-4 w-4 text-amber-500" />
-          </Button>
+          {canEdit() && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleEditInspection(row.original)}
+              className="hover:bg-amber-50 dark:hover:bg-amber-900/20"
+            >
+              <Edit className="h-4 w-4 text-amber-500" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -680,17 +682,19 @@ export default function AdminDashboard() {
           >
             <FileDown className="h-4 w-4 text-green-500" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setInspectionToDelete(row.original);
-              setShowDeleteDialog(true);
-            }}
-            className="hover:bg-red-50 dark:hover:bg-red-900/20"
-          >
-            <Trash2 className="h-4 w-4 text-red-500" />
-          </Button>
+          {canDelete() && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setInspectionToDelete(row.original);
+                setShowDeleteDialog(true);
+              }}
+              className="hover:bg-red-50 dark:hover:bg-red-900/20"
+            >
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </Button>
+          )}
         </div>
       ),
     },

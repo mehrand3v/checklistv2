@@ -6,6 +6,8 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "@/services/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/services/firebase";
 
 const AuthContext = createContext(null);
 
@@ -13,9 +15,23 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [adminRole, setAdminRole] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Fetch admin role from Firestore
+        try {
+          const adminDoc = await getDoc(doc(db, "admins", user.uid));
+          if (adminDoc.exists()) {
+            setAdminRole(adminDoc.data().role);
+          }
+        } catch (err) {
+          console.error("Error fetching admin role:", err);
+        }
+      } else {
+        setAdminRole(null);
+      }
       setCurrentUser(user);
       setLoading(false);
     });
@@ -37,12 +53,18 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await signOut(auth);
+      setAdminRole(null);
       return true;
     } catch (err) {
       setError(err.message);
       return false;
     }
   };
+
+  const isSuperAdmin = () => adminRole === 'super';
+  const isStandardAdmin = () => adminRole === 'standard';
+  const canDelete = () => isSuperAdmin();
+  const canEdit = () => isSuperAdmin() || isStandardAdmin();
 
   const value = {
     currentUser,
@@ -51,6 +73,11 @@ export function AuthProvider({ children }) {
     login,
     logout,
     isAdmin: !!currentUser,
+    adminRole,
+    isSuperAdmin,
+    isStandardAdmin,
+    canDelete,
+    canEdit,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -15,11 +15,30 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { auth } from "./firebase";
 
 const COLLECTIONS = {
   INSPECTIONS: "inspections",
   CATEGORIES: "categories",
   ITEMS: "items",
+  ADMINS: "admins",
+};
+
+// Helper function to check admin permissions
+const checkAdminPermissions = async (requiredRole) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Not authenticated");
+
+  const adminDoc = await getDoc(doc(db, COLLECTIONS.ADMINS, user.uid));
+  if (!adminDoc.exists()) throw new Error("Not an admin");
+
+  const adminRole = adminDoc.data().role;
+  if (requiredRole === 'super' && adminRole !== 'super') {
+    throw new Error("Super admin privileges required");
+  }
+  if (requiredRole === 'standard' && !['super', 'standard'].includes(adminRole)) {
+    throw new Error("Standard admin privileges required");
+  }
 };
 
 // Submit a new inspection
@@ -130,13 +149,9 @@ export const getAllInspections = async (limitCount = 50) => {
 // Delete an inspection
 export const deleteInspection = async (inspectionId) => {
   try {
-    if (!inspectionId) {
-      throw new Error('Inspection ID is required');
-    }
-
-    const docRef = doc(db, COLLECTIONS.INSPECTIONS, inspectionId);
-    await deleteDoc(docRef);
-    
+    await checkAdminPermissions('super');
+    const inspectionRef = doc(db, COLLECTIONS.INSPECTIONS, inspectionId);
+    await deleteDoc(inspectionRef);
     return { success: true };
   } catch (error) {
     console.error("Error deleting inspection:", error);
@@ -526,6 +541,7 @@ export const getInspectionItems = async () => {
 // Update an inspection
 export const updateInspection = async (inspectionId, inspectionData) => {
   try {
+    await checkAdminPermissions('standard');
     if (!inspectionId) {
       throw new Error('Inspection ID is required');
     }
