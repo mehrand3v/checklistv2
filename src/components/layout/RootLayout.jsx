@@ -64,30 +64,30 @@ export default function RootLayout() {
   const isAdminPage = location.pathname.startsWith("/admin");
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-slate-100/50 to-slate-200/30 dark:from-slate-900 dark:via-slate-800/50 dark:to-slate-700/30">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-slate-900/80">
         <div className="container py-4 px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold">CSR Daily Walk</h1>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">CSR Daily Walk</h1>
           </div>
           
           {/* Mobile menu button */}
           {isMobile && !isAdminPage && (
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="hover:bg-slate-100/80 dark:hover:bg-slate-800/80">
+                  <Menu className="h-5 w-5 text-slate-700 dark:text-slate-300" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right">
+              <SheetContent side="right" className="bg-white/95 dark:bg-slate-900/95 border-slate-200/80 dark:border-slate-700/80 backdrop-blur">
                 <div className="flex flex-col gap-4 py-4">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start"
+                    className="w-full justify-start hover:bg-slate-100/80 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300"
                     onClick={goToAdminLogin}
                   >
-                    <LockKeyhole className="mr-2 h-4 w-4" />
+                    <LockKeyhole className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
                     Admin Login
                   </Button>
                 </div>
@@ -102,8 +102,9 @@ export default function RootLayout() {
                 variant="ghost"
                 size="sm"
                 onClick={toggleAdminLink}
+                className="hover:bg-slate-100/80 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300"
               >
-                <LockKeyhole className="mr-2 h-4 w-4" />
+                <LockKeyhole className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
                 Admin
               </Button>
               
@@ -114,12 +115,12 @@ export default function RootLayout() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-4 mt-2 bg-card shadow-lg rounded-md border border-border p-2 z-50"
+                    className="absolute right-4 mt-2 bg-white/95 dark:bg-slate-900/95 shadow-lg rounded-md border border-slate-200/80 dark:border-slate-700/80 p-2 z-50 backdrop-blur"
                   >
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-full justify-start"
+                      className="w-full justify-start hover:bg-slate-100/80 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300"
                       onClick={goToAdminLogin}
                     >
                       Admin Login
@@ -138,9 +139,9 @@ export default function RootLayout() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border py-4 mt-auto">
+      <footer className="border-t border-slate-200/80 dark:border-slate-700/80 py-4 mt-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-slate-900/80">
         <div className="container px-4">
-          <p className="text-sm text-muted-foreground text-center">
+          <p className="text-sm text-slate-600 dark:text-slate-400 text-center">
             CSR Daily Walk &copy; {new Date().getFullYear()}
           </p>
         </div>

@@ -659,22 +659,25 @@ export default function AdminDashboard() {
               setSelectedInspection(row.original);
               setShowInspectionDetail(true);
             }}
+            className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
           >
-            <Eye className="h-4 w-4" />
+            <Eye className="h-4 w-4 text-blue-500" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => handleEditInspection(row.original)}
+            className="hover:bg-amber-50 dark:hover:bg-amber-900/20"
           >
-            <Edit className="h-4 w-4" />
+            <Edit className="h-4 w-4 text-amber-500" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => generatePDF(row.original)}
+            className="hover:bg-green-50 dark:hover:bg-green-900/20"
           >
-            <FileDown className="h-4 w-4" />
+            <FileDown className="h-4 w-4 text-green-500" />
           </Button>
           <Button
             variant="ghost"
@@ -683,8 +686,9 @@ export default function AdminDashboard() {
               setInspectionToDelete(row.original);
               setShowDeleteDialog(true);
             }}
+            className="hover:bg-red-50 dark:hover:bg-red-900/20"
           >
-            <Trash2 className="h-4 w-4 text-destructive" />
+            <Trash2 className="h-4 w-4 text-red-500" />
           </Button>
         </div>
       ),
@@ -831,25 +835,22 @@ export default function AdminDashboard() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setCurrentPage(currentPage - 1)}
+            onClick={() => setCurrentPage(1)}
             disabled={currentPage === 1}
+            className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronsLeft className="h-4 w-4 text-blue-500" />
           </Button>
           
-          {/* First page */}
-          {startPage > 1 && (
-            <>
-              <Button
-                variant={currentPage === 1 ? "default" : "outline"}
-                size="sm"
-                onClick={() => setCurrentPage(1)}
-              >
-                1
-              </Button>
-              {startPage > 2 && <span className="px-2">...</span>}
-            </>
-          )}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+          >
+            <ChevronLeft className="h-4 w-4 text-blue-500" />
+          </Button>
           
           {/* Page numbers */}
           {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((page) => (
@@ -866,7 +867,6 @@ export default function AdminDashboard() {
           {/* Last page */}
           {endPage < totalPages && (
             <>
-              {endPage < totalPages - 1 && <span className="px-2">...</span>}
               <Button
                 variant={currentPage === totalPages ? "default" : "outline"}
                 size="sm"
@@ -880,10 +880,21 @@ export default function AdminDashboard() {
           <Button
             variant="outline"
             size="icon"
+            onClick={() => setCurrentPage(totalPages)}
+            disabled={currentPage === totalPages}
+            className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+          >
+            <ChevronsRight className="h-4 w-4 text-blue-500" />
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => setCurrentPage(currentPage + 1)}
             disabled={currentPage === totalPages}
+            className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4 text-blue-500" />
           </Button>
         </div>
       </div>
@@ -996,7 +1007,7 @@ export default function AdminDashboard() {
                 <CardContent>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:space-x-2 mb-4">
                     <div className="relative flex-1 w-full sm:w-auto">
-                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-blue-500" />
                       <Input
                         placeholder="Search inspections..."
                         value={searchTerm}
@@ -1014,12 +1025,12 @@ export default function AdminDashboard() {
                       <DropdownMenuContent>
                         <DropdownMenuItem onClick={() => {
                           if (filteredInspections.length > 0) {
-                            exportToCsv(filteredInspections);
+                            exportToCsv(filteredInspections, "inspections.csv");
                           } else {
                             toast.error("No data to export");
                           }
                         }}>
-                          <FileText className="h-4 w-4 mr-2" />
+                          <FileText className="h-4 w-4 mr-2 text-blue-500" />
                           Export as CSV
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => {
@@ -1034,7 +1045,7 @@ export default function AdminDashboard() {
                             toast.error("No data to export");
                           }
                         }}>
-                          <FileText className="h-4 w-4 mr-2" />
+                          <FileText className="h-4 w-4 mr-2 text-blue-500" />
                           Export as PDF
                         </DropdownMenuItem>
                       </DropdownMenuContent>
