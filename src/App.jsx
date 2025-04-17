@@ -24,6 +24,9 @@ import NotFoundPage from "@/pages/NotFoundPage";
 // Admin Pages
 import AdminDashboard from "@/pages/admin/Dashboard";
 import LoginPage from "@/pages/admin/LoginPage";
+import QRCodePage from "@/pages/admin/QRCodePage";
+import StoresPage from "@/pages/admin/StoresPage";
+import UsersPage from "@/pages/admin/UsersPage";
 
 function App() {
   return (
@@ -51,6 +54,9 @@ function App() {
               }
             >
               <Route index element={<AdminDashboard />} />
+              <Route path="qr" element={<QRCodePage />} />
+              <Route path="stores" element={<StoresPage />} />
+              <Route path="users" element={<UsersPage />} />
               <Route path="*" element={<Navigate to="/admin" replace />} />
             </Route>
           </Routes>

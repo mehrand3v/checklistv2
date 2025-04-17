@@ -97,38 +97,14 @@ export default function RootLayout() {
           
           {/* Desktop admin link */}
           {!isMobile && !isAdminPage && (
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleAdminLink}
-                className="hover:bg-slate-100/80 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300"
-              >
-                <LockKeyhole className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
-                Admin
-              </Button>
-              
-              {/* Admin link dropdown - Desktop only */}
-              <AnimatePresence>
-                {showAdminLink && !isAdminPage && !isMobile && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-4 mt-2 bg-white/95 dark:bg-slate-900/95 shadow-lg rounded-md border border-slate-200/80 dark:border-slate-700/80 p-2 z-50 backdrop-blur"
-                  >
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start hover:bg-slate-100/80 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300"
-                      onClick={goToAdminLogin}
-                    >
-                      Admin Login
-                    </Button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <Button
+              variant="ghost"
+              className="hover:bg-slate-100/80 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300"
+              onClick={goToAdminLogin}
+            >
+              <LockKeyhole className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
+              Admin Login
+            </Button>
           )}
         </div>
       </header>
@@ -137,15 +113,6 @@ export default function RootLayout() {
       <main className="flex-1 container mx-auto px-4 py-6">
         <Outlet />
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-200/80 dark:border-slate-700/80 py-4 mt-auto bg-white/90 dark:bg-slate-900/90 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-slate-900/80">
-        <div className="container px-4">
-          <p className="text-sm text-slate-600 dark:text-slate-400 text-center">
-            CSR Daily Walk &copy; {new Date().getFullYear()}
-          </p>
-        </div>
-      </footer>
 
       {/* Toast Container */}
       <Toaster position="top-center" />

@@ -20,7 +20,8 @@ import {
   ArrowRight,
   ArrowLeft,
   Menu,
-  AlertOctagon
+  AlertOctagon,
+  RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -28,6 +29,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import InspectionItem from "./InspectionItem";
 import { useInspection } from "@/context/InspectionContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -54,10 +66,11 @@ const IconComponent = ({ iconName, className }) => {
 export default function CategoryPage() {
   const navigate = useNavigate();
   const { categoryId } = useParams();
-  const { inspectionData, getCompletionStatus, isCategoryComplete, loading } =
+  const { inspectionData, getCompletionStatus, isCategoryComplete, loading, resetInspection } =
     useInspection();
   const [showSummary, setShowSummary] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
 
   // Check if device is mobile
   useEffect(() => {
@@ -146,6 +159,12 @@ export default function CategoryPage() {
     }
   };
 
+  const handleReset = () => {
+    resetInspection();
+    navigate("/");
+    toast.success("Inspection reset successfully");
+  };
+
   if (loading) {
     return (
       <div className="container py-8 max-w-md mx-auto">
@@ -170,10 +189,41 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="container py-6 max-w-md mx-auto">
+    <div className="min-h-screen pb-20">
       {/* Category Title and Progress */}
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold mb-2">{category.title}</h1>
+        <div className="flex justify-between items-start mb-2">
+          <h1 className="text-2xl font-semibold">{category.title}</h1>
+          <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset Inspection</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to reset the inspection? This will clear all your progress and return you to the start. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleReset}
+                  className="bg-red-600 text-white hover:bg-red-700"
+                >
+                  Reset Inspection
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <span>{categoryStats.completed} of {categoryStats.total} items completed</span>
           <span>•</span>
@@ -212,14 +262,14 @@ export default function CategoryPage() {
         ))}
       </div>
 
-      {/* Fixed Navigation at Bottom */}
+      {/* Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-50">
         <div className="container max-w-md mx-auto">
           <div className="flex justify-between items-center">
             <Button
               variant="outline"
               onClick={goToPreviousCategory}
-              className="flex-1 mr-2"
+              className="flex-1"
               disabled={categoryIndex === 0}
             >
               <ChevronLeft className="mr-2 h-4 w-4" />

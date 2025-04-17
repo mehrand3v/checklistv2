@@ -1,7 +1,7 @@
 // src/components/admin/AdminLayout.jsx
 import { useNavigate } from "react-router-dom";
 import { Outlet } from "react-router-dom";
-import { LogOut, Home } from "lucide-react";
+import { LogOut, Home, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
@@ -50,6 +50,15 @@ export default function AdminLayout() {
                 <Button 
                   variant="ghost" 
                   size="sm" 
+                  onClick={() => navigate("/admin/qr")}
+                  className="hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                >
+                  <QrCode className="h-4 w-4 text-purple-500" />
+                </Button>
+
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
                   onClick={handleLogout}
                   className="hover:bg-red-50 dark:hover:bg-red-900/20"
                 >
@@ -67,13 +76,6 @@ export default function AdminLayout() {
           <Outlet />
         </PageWrapper>
       </main>
-
-      {/* Admin Footer */}
-      <footer className="border-t border-gray-200 dark:border-gray-700 py-4 bg-white dark:bg-gray-800">
-        <div className="container text-center text-sm text-gray-500 dark:text-gray-400">
-          © {new Date().getFullYear()} CSR Daily Walk. All rights reserved.
-        </div>
-      </footer>
     </div>
   );
 }
