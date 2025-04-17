@@ -28,6 +28,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Eye,
+  Download,
 } from "lucide-react";
 import { DataTable } from "@/components/admin/DataTable";
 import { useAuth } from "@/context/AuthContext";
@@ -63,6 +64,12 @@ import {
 import { EditInspectionDialog } from "@/components/admin/EditInspectionDialog";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Add this new component for viewing inspection details
 function InspectionDetailDialog({ inspection, open, onOpenChange }) {
@@ -150,56 +157,127 @@ function InspectionDetailDialog({ inspection, open, onOpenChange }) {
 }
 
 // Add this function before the AdminDashboard component
-const generatePDF = async (inspection) => {
+const generatePDF = async (inspections) => {
   try {
+    console.log("Starting PDF generation with data:", inspections);
+    
     // Create a temporary div to render the inspection content
     const content = document.createElement('div');
+    content.style.padding = '20px';
+    content.style.fontFamily = 'Arial, sans-serif';
+    content.style.maxWidth = '800px';
+    content.style.margin = '0 auto';
+    content.style.backgroundColor = '#ffffff';
+    content.style.position = 'absolute';
+    content.style.left = '-9999px';
+    content.style.top = '0';
+
+    // Add title
     content.innerHTML = `
-      <div style="padding: 20px; font-family: Arial, sans-serif;">
-        <h1 style="text-align: center; margin-bottom: 20px;">Inspection Report</h1>
-        <div style="margin-bottom: 20px;">
-          <p><strong>Store Number:</strong> ${inspection.storeNumber}</p>
-          <p><strong>Inspector:</strong> ${inspection.inspectedBy}</p>
-          <p><strong>Date:</strong> ${inspection.inspectionDate ? new Date(inspection.inspectionDate).toLocaleDateString() : 'N/A'}</p>
-        </div>
-        ${inspection.categories.map(category => `
-          <div style="margin-bottom: 20px;">
-            <h2 style="color: #333; border-bottom: 2px solid #333; padding-bottom: 5px;">${category.title}</h2>
-            <div style="margin-left: 20px;">
-              ${category.items.map(item => `
-                <div style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-                  <p style="margin: 0;"><strong>${item.description}</strong></p>
-                  <p style="margin: 5px 0; color: ${item.status === 'yes' ? 'green' : item.fixed ? 'blue' : 'red'}">
-                    Status: ${item.status === 'yes' ? 'Pass' : item.fixed ? 'Fixed' : 'Fail'}
-                  </p>
-                  ${item.notes ? `<p style="margin: 5px 0; font-style: italic;">Notes: ${item.notes}</p>` : ''}
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `).join('')}
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #333; margin-bottom: 10px;">Inspection Reports</h1>
+        <p style="color: #666;">Generated on ${new Date().toLocaleDateString()}</p>
       </div>
     `;
+
+    // Add each inspection
+    const inspectionsArray = Array.isArray(inspections) ? inspections : [inspections];
+    console.log("Processing inspections array:", inspectionsArray);
+    
+    inspectionsArray.forEach((inspection, index) => {
+      content.innerHTML += `
+        <div style="margin-bottom: 40px; page-break-after: always;">
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h2 style="color: #333; margin-bottom: 15px;">Inspection #${index + 1}</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div>
+                <p style="margin: 5px 0;"><strong>Store Number:</strong> ${inspection.storeNumber || 'N/A'}</p>
+                <p style="margin: 5px 0;"><strong>Inspector:</strong> ${inspection.inspectedBy || 'N/A'}</p>
+              </div>
+              <div>
+                <p style="margin: 5px 0;"><strong>Date:</strong> ${inspection.inspectionDate ? new Date(inspection.inspectionDate).toLocaleDateString() : 'N/A'}</p>
+                <p style="margin: 5px 0;"><strong>Status:</strong> ${inspection.submittedAt ? 'Submitted' : 'Pending'}</p>
+              </div>
+            </div>
+          </div>
+          ${inspection.categories?.map(category => `
+            <div style="margin-bottom: 25px;">
+              <h3 style="color: #333; border-bottom: 2px solid #333; padding-bottom: 5px; margin-bottom: 15px;">${category.title}</h3>
+              <div style="margin-left: 20px;">
+                ${category.items?.map(item => `
+                  <div style="margin-bottom: 15px; padding: 12px; border: 1px solid #ddd; border-radius: 6px; background-color: ${item.status === 'yes' ? '#f0fff4' : item.fixed ? '#f0f7ff' : '#fff0f0'}">
+                    <p style="margin: 0 0 8px 0; font-weight: bold;">${item.description}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span style="color: ${item.status === 'yes' ? 'green' : item.fixed ? 'blue' : 'red'}; font-weight: bold;">
+                        Status: ${item.status === 'yes' ? 'Pass' : item.fixed ? 'Fixed' : 'Fail'}
+                      </span>
+                      ${item.notes ? `<span style="color: #666; font-style: italic;">Notes: ${item.notes}</span>` : ''}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    });
+
+    console.log("Content created, appending to document");
     document.body.appendChild(content);
 
     // Generate PDF
-    const canvas = await html2canvas(content);
+    console.log("Starting html2canvas conversion");
+    const canvas = await html2canvas(content, {
+      scale: 2,
+      useCORS: true,
+      logging: true,
+      backgroundColor: '#ffffff',
+      allowTaint: true,
+      foreignObjectRendering: true,
+      windowWidth: 800,
+      windowHeight: content.scrollHeight
+    });
+    
+    console.log("Canvas created, converting to image");
     const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
+    
+    console.log("Creating PDF");
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
     const imgProps = pdf.getImageProperties(imgData);
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    
+    // Add multiple pages if content is too long
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    let heightLeft = pdfHeight;
+    let position = 0;
+    
+    console.log("Adding image to PDF");
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+    heightLeft -= pageHeight;
+    
+    while (heightLeft >= 0) {
+      position = heightLeft - pdfHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+    }
 
+    console.log("Saving PDF");
     // Download the PDF
-    pdf.save(`inspection-${inspection.storeNumber}-${new Date().toISOString().split('T')[0]}.pdf`);
+    pdf.save(`inspections-${new Date().toISOString().split('T')[0]}.pdf`);
 
     // Clean up
     document.body.removeChild(content);
     toast.success("PDF downloaded successfully");
   } catch (error) {
     console.error("Error generating PDF:", error);
-    toast.error("Failed to generate PDF");
+    toast.error("Failed to generate PDF: " + (error.message || "Unknown error"));
   }
 };
 
@@ -859,63 +937,101 @@ export default function AdminDashboard() {
           className="w-full"
           onValueChange={setActiveTab}
         >
-          <TabsList className="mb-4">
+          <TabsList className="mb-6">
             <TabsTrigger value="inspections">Inspections</TabsTrigger>
             <TabsTrigger value="categories">Categories & Items</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="inspections">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl">Inspections</CardTitle>
-                <CardDescription>
-                  View inspection history
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search inspections..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8"
-                    />
+          <div className="mt-4">
+            <TabsContent value="inspections">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xl">Inspections</CardTitle>
+                  <CardDescription>
+                    View inspection history
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:space-x-2 mb-4">
+                    <div className="relative flex-1 w-full sm:w-auto">
+                      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search inspections..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-8 w-full"
+                      />
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Download className="h-4 w-4 mr-2" />
+                          Export
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => {
+                          if (filteredInspections.length > 0) {
+                            exportToCsv(filteredInspections);
+                          } else {
+                            toast.error("No data to export");
+                          }
+                        }}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Export as CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          if (filteredInspections.length > 0) {
+                            try {
+                              generatePDF(filteredInspections);
+                            } catch (error) {
+                              console.error("Error in PDF generation:", error);
+                              toast.error("Failed to generate PDF: " + (error.message || "Unknown error"));
+                            }
+                          } else {
+                            toast.error("No data to export");
+                          }
+                        }}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Export as PDF
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => exportToCsv(getFilteredData(filteredInspections), "inspections")}
-                  >
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Export
-                  </Button>
-                </div>
-                <DataTable
-                  columns={inspectionColumns}
-                  data={getPaginatedData(filteredInspections)}
-                  loading={loading}
-                />
-                <div className="mt-4">
-                  {renderPagination()}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                    <div className="min-w-full inline-block align-middle">
+                      <DataTable
+                        columns={inspectionColumns}
+                        data={getPaginatedData(filteredInspections)}
+                        loading={loading}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    {renderPagination()}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          <TabsContent value="categories">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl">Categories & Items</CardTitle>
-                <CardDescription>
-                  Manage inspection categories and items
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CategoryManagement />
-              </CardContent>
-            </Card>
-          </TabsContent>
+            <TabsContent value="categories">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xl">Categories & Items</CardTitle>
+                  <CardDescription>
+                    Manage inspection categories and items
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto -mx-4 sm:mx-0">
+                    <div className="min-w-full inline-block align-middle">
+                      <CategoryManagement />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </div>
         </Tabs>
       </div>
 

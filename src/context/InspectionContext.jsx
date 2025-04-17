@@ -60,15 +60,6 @@ export function InspectionProvider({ children }) {
     localStorage.setItem("csr_store_info", JSON.stringify(storeInfo));
   }, [storeInfo]);
 
-  useEffect(() => {
-    if (inspectionData.length > 0) {
-      localStorage.setItem(
-        "csr_inspection_data",
-        JSON.stringify(inspectionData)
-      );
-    }
-  }, [inspectionData]);
-
   // Calculate completion status for progress indicator
   const getCompletionStatus = () => {
     const totalItems = inspectionData.reduce(
@@ -89,23 +80,36 @@ export function InspectionProvider({ children }) {
   };
 
   // Update a specific inspection item
-  const updateInspectionItem = (categoryId, itemId, updates) => {
-    setInspectionData((prevData) =>
-      prevData.map((category) => {
-        if (category.id === categoryId) {
+  const updateInspectionItem = (updatedItem) => {
+    setInspectionData((prevData) => {
+      const newData = prevData.map((category) => {
+        if (category.id === updatedItem.categoryId) {
           return {
             ...category,
             items: category.items.map((item) => {
-              if (item.id === itemId) {
-                return { ...item, ...updates };
+              if (item.id === updatedItem.id) {
+                // Only update if there are actual changes
+                const hasChanges = 
+                  item.status !== updatedItem.status ||
+                  item.notes !== updatedItem.notes ||
+                  item.fixed !== updatedItem.fixed;
+                
+                if (!hasChanges) return item;
+                
+                return { ...item, ...updatedItem };
               }
               return item;
             }),
           };
         }
         return category;
-      })
-    );
+      });
+
+      // Save to localStorage directly here instead of relying on useEffect
+      localStorage.setItem("csr_inspection_data", JSON.stringify(newData));
+      
+      return newData;
+    });
   };
 
   // Get all issues (items with status = "no")

@@ -304,16 +304,31 @@ export const saveCategory = async (categoryData) => {
 
     // If it's a new category, get count of existing categories for ordering
     let order = 0;
+    let existingItems = [];
+    
     if (isNew) {
       const countSnapshot = await getDocs(
         collection(db, COLLECTIONS.CATEGORIES)
       );
       order = countSnapshot.size; // New category goes at the end
     } else {
-      // Get current order value to preserve it
+      // Get current order value and items to preserve them
       const currentSnapshot = await getDoc(categoryRef);
       if (currentSnapshot.exists()) {
-        order = currentSnapshot.data().order || 0;
+        const currentData = currentSnapshot.data();
+        order = currentData.order || 0;
+        
+        // Get existing items for this category
+        const itemsQuery = query(
+          collection(db, COLLECTIONS.ITEMS),
+          where("categoryId", "==", categoryId),
+          orderBy("order", "asc")
+        );
+        const itemSnapshot = await getDocs(itemsQuery);
+        existingItems = itemSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
       }
     }
 
@@ -339,7 +354,7 @@ export const saveCategory = async (categoryData) => {
         id: categoryId,
         title: categoryData.title,
         icon: categoryData.icon || "Utensils",
-        items: [], // Empty items array for new categories
+        items: existingItems, // Include existing items in the response
       },
     };
   } catch (error) {

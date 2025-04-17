@@ -79,8 +79,8 @@ export function EditInspectionDialog({ inspection, open, onOpenChange, onUpdate 
             <Label htmlFor="clientDate">Inspection Date</Label>
             <Input
               id="clientDate"
-              type="datetime-local"
-              value={format(new Date(formData.clientDate), "yyyy-MM-dd'T'HH:mm")}
+              type="date"
+              value={format(new Date(formData.clientDate), "yyyy-MM-dd")}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, clientDate: e.target.value }))
               }
