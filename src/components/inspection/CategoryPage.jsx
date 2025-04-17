@@ -1,5 +1,5 @@
 // src/components/inspection/CategoryPage.jsx
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ChevronLeft, 
@@ -18,16 +18,20 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  Menu,
+  AlertOctagon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import InspectionItem from "./InspectionItem";
 import { useInspection } from "@/context/InspectionContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 // Dynamic icon mapping function
 const IconComponent = ({ iconName, className }) => {
@@ -53,6 +57,19 @@ export default function CategoryPage() {
   const { inspectionData, getCompletionStatus, isCategoryComplete, loading } =
     useInspection();
   const [showSummary, setShowSummary] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Find the current category
   const category = useMemo(() => {
@@ -74,18 +91,20 @@ export default function CategoryPage() {
     return isCategoryComplete(categoryId);
   }, [categoryId, isCategoryComplete]);
 
-  // Get category statistics
+  // Get category statistics and incomplete items
   const categoryStats = useMemo(() => {
     if (!category) return null;
     
     const total = category.items.length;
     const completed = category.items.filter(item => item.status !== null).length;
+    const incomplete = category.items.filter(item => item.status === null);
     const issues = category.items.filter(item => item.status === "no").length;
     const fixed = category.items.filter(item => item.status === "no" && item.fixed).length;
     
     return {
       total,
       completed,
+      incomplete,
       issues,
       fixed,
       percentComplete: total ? Math.round((completed / total) * 100) : 0
@@ -97,22 +116,32 @@ export default function CategoryPage() {
     if (categoryIndex > 0) {
       const prevCategory = inspectionData[categoryIndex - 1];
       navigate(`/inspection/${prevCategory.id}`);
-      // Scroll to top of page
       window.scrollTo(0, 0);
     } else {
-      // If we're at the first category, go back to store info
       navigate("/");
     }
   };
 
   const goToNextCategory = () => {
+    if (!categoryComplete) {
+      // Show incomplete items in the toast
+      const incompleteCount = categoryStats.incomplete.length;
+      toast.error(
+        <div className="flex flex-col gap-2">
+          <div className="font-semibold">Please complete all items before proceeding</div>
+          <div className="text-sm">
+            {incompleteCount} {incompleteCount === 1 ? 'item' : 'items'} remaining
+          </div>
+        </div>
+      );
+      return;
+    }
+
     if (categoryIndex < inspectionData.length - 1) {
       const nextCategory = inspectionData[categoryIndex + 1];
       navigate(`/inspection/${nextCategory.id}`);
-      // Scroll to top of page
       window.scrollTo(0, 0);
     } else {
-      // If we're at the last category, go to review
       navigate("/review");
     }
   };
@@ -142,106 +171,35 @@ export default function CategoryPage() {
 
   return (
     <div className="container py-6 max-w-md mx-auto">
-      {/* Header with icon and title */}
-      <div className="mb-6 bg-white dark:bg-slate-900 rounded-lg shadow-sm p-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center">
-            <div className="bg-primary/10 p-2 rounded-md mr-3">
-              <IconComponent iconName={category.icon} className="w-6 h-6 text-primary" />
-            </div>
-            <h1 className="text-2xl font-bold">
-              {category.title}
-              {categoryComplete && (
-                <CheckCircle2 className="ml-2 inline text-green-500 w-5 h-5" />
-              )}
-            </h1>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            onClick={() => setShowSummary(!showSummary)}
-          >
-            {showSummary ? (
-              <EyeOff className="h-4 w-4 mr-1" />
-            ) : (
-              <Eye className="h-4 w-4 mr-1" />
-            )}
-            {showSummary ? "Hide" : "Show"} Summary
-          </Button>
-        </div>
-
-        {/* Overall progress bar */}
-        <div className="mb-4">
-          <div className="flex justify-between text-sm mb-1.5">
-            <span className="font-medium">
-              Total Progress: {completionStatus.completedItems} of{" "}
-              {completionStatus.totalItems} items
-            </span>
-            <Badge variant={completionStatus.percentComplete === 100 ? "success" : "outline"}>
-              {completionStatus.percentComplete}%
-            </Badge>
-          </div>
-          <Progress 
-            value={completionStatus.percentComplete} 
-            className="h-2"
-          />
-        </div>
-
-        {/* Category summary statistics */}
-        <AnimatePresence>
-          {showSummary && categoryStats && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="mt-4 border-none shadow-none bg-slate-50 dark:bg-slate-800">
-                <CardContent className="grid grid-cols-2 gap-6 pt-4">
-                  <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">{categoryStats.completed}</div>
-                    <div className="text-sm text-green-700 dark:text-green-300">Completed</div>
-                  </div>
-                  <div className="text-center p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{categoryStats.issues}</div>
-                    <div className="text-sm text-amber-700 dark:text-amber-300">Issues</div>
-                  </div>
-                  <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{categoryStats.fixed}</div>
-                    <div className="text-sm text-blue-700 dark:text-blue-300">Fixed</div>
-                  </div>
-                  <div className="text-center p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{categoryStats.percentComplete}%</div>
-                    <div className="text-sm text-purple-700 dark:text-purple-300">Complete</div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+      {/* Category Title and Progress */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold mb-2">{category.title}</h1>
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+          <span>{categoryStats.completed} of {categoryStats.total} items completed</span>
+          <span>•</span>
+          <span>{categoryStats.issues} issues found</span>
+          {categoryStats.issues > 0 && (
+            <>
+              <span>•</span>
+              <span>{categoryStats.fixed} fixed</span>
+            </>
           )}
-        </AnimatePresence>
-      </div>
-
-      {/* Category navigation indicator */}
-      <div className="flex justify-center mb-6">
-        <div className="flex items-center space-x-1">
-          {inspectionData.map((cat, index) => (
-            <div 
-              key={cat.id} 
-              className={`h-2 w-2 rounded-full ${
-                index === categoryIndex 
-                  ? "bg-primary w-6" 
-                  : isCategoryComplete(cat.id) 
-                    ? "bg-green-500" 
-                    : "bg-slate-300 dark:bg-slate-700"
-              } transition-all`}
-            />
-          ))}
         </div>
+        <Progress value={categoryStats.percentComplete} className="mt-2" />
+        
+        {/* Warning for incomplete items */}
+        {!categoryComplete && (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md flex items-center gap-2 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400">
+            <AlertOctagon className="h-5 w-5 flex-shrink-0" />
+            <span className="text-sm">
+              Please complete all inspection items before proceeding to the next category
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Inspection items list */}
-      <div className="space-y-4">
+      <div className="space-y-4 pb-24">
         {category.items.map((item, index) => (
           <motion.div
             key={item.id}
@@ -249,34 +207,35 @@ export default function CategoryPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1, duration: 0.3 }}
           >
-            <InspectionItem categoryId={category.id} item={item} />
+            <InspectionItem item={item} />
           </motion.div>
         ))}
       </div>
 
-      {/* Navigation buttons */}
-      <div className="flex justify-between mt-8 pb-12">
-        <Button
-          variant="outline"
-          onClick={goToPreviousCategory}
-          disabled={categoryIndex === 0}
-          className="flex items-center gap-2 px-4 py-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {categoryIndex > 0 
-            ? inspectionData[categoryIndex - 1]?.title || "Previous" 
-            : "Home"}
-        </Button>
-
-        <Button 
-          onClick={goToNextCategory}
-          className="flex items-center gap-2 px-4 py-2 shadow-md"
-        >
-          {categoryIndex < inspectionData.length - 1 
-            ? inspectionData[categoryIndex + 1]?.title || "Next" 
-            : "Review"}
-          <ArrowRight className="h-4 w-4" />
-        </Button>
+      {/* Fixed Navigation at Bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 z-50">
+        <div className="container max-w-md mx-auto">
+          <div className="flex justify-between items-center">
+            <Button
+              variant="outline"
+              onClick={goToPreviousCategory}
+              className="flex-1 mr-2"
+              disabled={categoryIndex === 0}
+            >
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              Previous
+            </Button>
+            <Button
+              variant={categoryComplete ? "default" : "outline"}
+              onClick={goToNextCategory}
+              className="flex-1 ml-2"
+              disabled={categoryIndex === inspectionData.length - 1}
+            >
+              Next
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -138,9 +138,54 @@
 @layer base {
     * {
         @apply border-border outline-ring/50;
+        -webkit-tap-highlight-color: transparent;
     }
 
     body {
         @apply bg-background text-foreground;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+        touch-action: manipulation;
+    }
+
+    /* Mobile-specific styles */
+    @media (max-width: 768px) {
+        html {
+            font-size: 16px;
+        }
+
+        input, select, textarea {
+            font-size: 16px !important; /* Prevents iOS zoom on focus */
+        }
+
+        button, a {
+            min-height: 44px; /* Minimum touch target size */
+            min-width: 44px;
+        }
+
+        /* Improve touch targets */
+        .clickable {
+            padding: 0.5rem;
+            margin: -0.5rem;
+        }
+
+        /* Prevent text selection */
+        .no-select {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+    }
+
+    /* Add smooth scrolling */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Improve tap targets */
+    button, a, [role="button"] {
+        cursor: pointer;
+        touch-action: manipulation;
     }
 }

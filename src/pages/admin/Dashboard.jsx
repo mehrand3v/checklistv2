@@ -27,6 +27,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Eye,
 } from "lucide-react";
 import { DataTable } from "@/components/admin/DataTable";
 import { useAuth } from "@/context/AuthContext";
@@ -61,13 +62,115 @@ import {
 } from "@/components/ui/alert-dialog";
 import { EditInspectionDialog } from "@/components/admin/EditInspectionDialog";
 
+// Add this new component for viewing inspection details
+function InspectionDetailDialog({ inspection, open, onOpenChange }) {
+  if (!inspection) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Inspection Details</DialogTitle>
+          <DialogDescription>
+            Complete inspection results for Store {inspection.storeNumber}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6 py-4">
+          {/* Inspection Header */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Store</p>
+              <p className="text-lg font-semibold">{inspection.storeNumber}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Inspector</p>
+              <p className="text-lg font-semibold">{inspection.inspectedBy}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Date</p>
+              <p className="text-lg font-semibold">
+                {inspection.inspectionDate
+                  ? new Date(inspection.inspectionDate).toLocaleDateString(undefined, {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : inspection.clientDate
+                  ? new Date(inspection.clientDate).toLocaleDateString(undefined, {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : "N/A"}
+              </p>
+            </div>
+          </div>
+
+          {/* Categories and Items */}
+          {inspection.categories && inspection.categories.length > 0 ? (
+            <div className="space-y-6">
+              {inspection.categories.map((category, categoryIndex) => (
+                <Card key={categoryIndex}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">{category.title}</CardTitle>
+                    <CardDescription>
+                      {category.items && category.items.length > 0
+                        ? `${category.items.filter(item => item && item.status === "no").length} issues found`
+                        : "No issues found"}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {category.items && category.items.map((item, itemIndex) => (
+                        <div key={itemIndex} className="border-b pb-3 last:border-0 last:pb-0">
+                          <div className="flex items-start justify-between">
+                            <div className="space-y-1">
+                              <p className="font-medium">{item.text}</p>
+                              {item.notes && (
+                                <p className="text-sm text-muted-foreground">{item.notes}</p>
+                              )}
+                            </div>
+                            <Badge
+                              variant={item.status === "yes" ? "outline" : item.fixed ? "success" : "destructive"}
+                              className="ml-2"
+                            >
+                              {item.status === "yes" ? "Pass" : item.fixed ? "Fixed" : "Fail"}
+                            </Badge>
+                          </div>
+                          {item.hasPhoto && (
+                            <div className="mt-2">
+                              <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                                <Eye className="h-3 w-3" />
+                                Photo available
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              No categories or items found in this inspection.
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function AdminDashboard() {
   const { currentUser } = useAuth();
   const [issues, setIssues] = useState([]);
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("issues");
+  const [activeTab, setActiveTab] = useState("inspections");
   const [selectedStore, setSelectedStore] = useState("all");
   const [storeStats, setStoreStats] = useState({});
   const [uniqueStores, setUniqueStores] = useState([]);
@@ -86,19 +189,15 @@ export default function AdminDashboard() {
   const [inspectionToEdit, setInspectionToEdit] = useState(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
 
+  // Add state for inspection detail dialog
+  const [selectedInspection, setSelectedInspection] = useState(null);
+  const [showInspectionDetail, setShowInspectionDetail] = useState(false);
+
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        // Fetch issues
-        const issuesResult = await getAllIssues();
-        if (issuesResult.success) {
-          setIssues(issuesResult.issues || []);
-        } else {
-          toast.error("Failed to load issues: " + issuesResult.error);
-        }
 
         // Fetch inspections
         const inspectionsResult = await getAllInspections();
@@ -129,60 +228,22 @@ export default function AdminDashboard() {
     const stats = {};
     uniqueStores.forEach(storeNumber => {
       const storeInspections = inspections.filter(i => i?.storeNumber === storeNumber);
-      const storeIssues = issues.filter(i => i?.storeNumber === storeNumber);
       
       stats[storeNumber] = {
         totalInspections: storeInspections.length,
-        openIssues: storeIssues.filter(i => !i.fixed).length,
-        fixedIssues: storeIssues.filter(i => i.fixed).length,
         lastInspection: storeInspections.length > 0 
           ? new Date(Math.max(...storeInspections.map(i => new Date(i.inspectionDate || i.clientDate))))
           : null,
-        issueTrend: calculateIssueTrend(storeIssues),
       };
     });
     setStoreStats(stats);
-  }, [inspections, issues, uniqueStores]);
-
-  // Calculate issue trend (improving, worsening, or stable)
-  const calculateIssueTrend = (storeIssues) => {
-    if (storeIssues.length < 2) return 'stable';
-    
-    const recentIssues = storeIssues
-      .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))
-      .slice(0, 5);
-    
-    const openCount = recentIssues.filter(i => !i.fixed).length;
-    const previousOpenCount = storeIssues
-      .filter(i => !i.fixed && new Date(i.submittedAt) < new Date(recentIssues[recentIssues.length - 1].submittedAt))
-      .slice(0, 5).length;
-    
-    if (openCount > previousOpenCount) return 'worsening';
-    if (openCount < previousOpenCount) return 'improving';
-    return 'stable';
-  };
+  }, [inspections, uniqueStores]);
 
   // Filter data based on selected store
   const getFilteredData = (data) => {
     if (selectedStore === "all") return data;
     return data.filter(item => item?.storeNumber === selectedStore);
   };
-
-  // Filter issues based on search term
-  const filteredIssues = issues.filter(
-    (issue) =>
-      issue &&
-      ((issue.description &&
-        issue.description
-          .toLowerCase()
-          .includes((searchTerm || "").toLowerCase())) ||
-        (issue.storeNumber &&
-          issue.storeNumber.toString().includes(searchTerm || "")) ||
-        (issue.categoryTitle &&
-          issue.categoryTitle
-            .toLowerCase()
-            .includes((searchTerm || "").toLowerCase())))
-  );
 
   // Filter inspections based on search term
   const filteredInspections = inspections.filter(
@@ -193,7 +254,7 @@ export default function AdminDashboard() {
         (inspection.inspectedBy &&
           inspection.inspectedBy
             .toLowerCase()
-            .includes((searchTerm || "").toLowerCase())))
+            .includes(searchTerm || "")))
   );
 
   // Get paginated data
@@ -206,8 +267,7 @@ export default function AdminDashboard() {
 
   // Update total pages when filtered data changes
   useEffect(() => {
-    const data = activeTab === "issues" ? filteredIssues : filteredInspections;
-    const filteredData = getFilteredData(data);
+    const filteredData = getFilteredData(filteredInspections);
     const newTotalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
     setTotalPages(newTotalPages);
     
@@ -215,26 +275,7 @@ export default function AdminDashboard() {
     if (currentPage > newTotalPages) {
       setCurrentPage(1);
     }
-  }, [filteredIssues, filteredInspections, selectedStore, itemsPerPage, activeTab]);
-
-  // Handle page change
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  // Handle items per page change
-  const handleItemsPerPageChange = (value) => {
-    const newItemsPerPage = parseInt(value);
-    setItemsPerPage(newItemsPerPage);
-    // Adjust current page to maintain the same items in view
-    const newCurrentPage = Math.min(
-      Math.ceil((currentPage * itemsPerPage) / newItemsPerPage),
-      Math.ceil(getFilteredData(activeTab === "issues" ? filteredIssues : filteredInspections).length / newItemsPerPage)
-    );
-    setCurrentPage(newCurrentPage);
-  };
+  }, [filteredInspections, selectedStore, itemsPerPage]);
 
   // Handle delete inspection
   const handleDeleteInspection = async () => {
@@ -247,9 +288,6 @@ export default function AdminDashboard() {
       if (result.success) {
         // Remove the inspection from state
         setInspections(prev => prev.filter(i => i.id !== inspectionToDelete.id));
-        
-        // Also remove associated issues
-        setIssues(prev => prev.filter(i => i.inspectionId !== inspectionToDelete.id));
         
         toast.success("Inspection deleted successfully");
       } else {
@@ -280,103 +318,6 @@ export default function AdminDashboard() {
     );
   };
 
-  // Columns for issues table
-  const issueColumns = [
-    {
-      header: "Store",
-      accessorKey: "storeNumber",
-      cell: ({ row }) => (
-        <div className="flex items-center">
-          <Store className="mr-2 h-4 w-4 text-muted-foreground" />
-          {row.original?.storeNumber || "N/A"}
-        </div>
-      ),
-    },
-    {
-      header: "Category",
-      accessorKey: "categoryTitle",
-      cell: ({ row }) => (
-        <div className="flex items-center">
-          <span className="ml-2">{row.original?.categoryTitle || "N/A"}</span>
-        </div>
-      ),
-    },
-    {
-      header: "Issue",
-      accessorKey: "description",
-      cell: ({ row }) => (
-        <div className="max-w-xs" title={row.original?.description || ""}>
-          <p className="font-medium">{row.original?.description || "N/A"}</p>
-          {row.original?.notes && (
-            <p className="text-sm text-muted-foreground mt-1 truncate">
-              Notes: {row.original.notes}
-            </p>
-          )}
-        </div>
-      ),
-    },
-    {
-      header: "Status",
-      accessorKey: "fixed",
-      cell: ({ row }) => (
-        <div>
-          <Badge
-            variant={row.original?.fixed ? "success" : "destructive"}
-            className="mb-1"
-          >
-            {row.original?.fixed ? "Fixed" : "Open"}
-          </Badge>
-          {row.original?.fixed && (
-            <p className="text-xs text-muted-foreground">Fixed by staff</p>
-          )}
-        </div>
-      ),
-    },
-    {
-      header: "Date",
-      accessorKey: "submittedAt",
-      cell: ({ row }) => (
-        <div>
-          {row.original?.submittedAt
-            ? new Date(row.original.submittedAt).toLocaleString(undefined, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : "N/A"}
-        </div>
-      ),
-    },
-    {
-      header: "Action",
-      id: "actions",
-      cell: ({ row }) => (
-        <div className="flex justify-end">
-          <IssueDetailDialog
-            issue={row.original}
-            onStatusChange={(inspectionId, categoryId, itemId, fixed) => {
-              // Update the local state when status changes
-              setIssues((prevIssues) =>
-                prevIssues.map((issue) => {
-                  if (
-                    issue.inspectionId === inspectionId &&
-                    issue.categoryId === categoryId &&
-                    issue.itemId === itemId
-                  ) {
-                    return { ...issue, fixed };
-                  }
-                  return issue;
-                })
-              );
-            }}
-          />
-        </div>
-      ),
-    },
-  ];
-
   // Columns for inspections table
   const inspectionColumns = [
     {
@@ -390,29 +331,41 @@ export default function AdminDashboard() {
       cell: ({ row }) => <div>{row.original?.inspectedBy || "N/A"}</div>,
     },
     {
-      header: "Date",
+      header: "Inspection Date",
       accessorKey: "inspectionDate",
-      cell: ({ row }) => (
-        <div>
-          {row.original?.inspectionDate
-            ? new Date(row.original.inspectionDate).toLocaleString(undefined, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : row.original?.clientDate
-            ? new Date(row.original.clientDate).toLocaleString(undefined, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : "N/A"}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const date = row.original?.inspectionDate || row.original?.clientDate;
+        if (!date) return <div>N/A</div>;
+        
+        const inspectionDate = new Date(date);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        // Format the date with relative time indicator
+        let dateDisplay = inspectionDate.toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+        
+        // Add relative time indicator
+        if (inspectionDate.toDateString() === today.toDateString()) {
+          dateDisplay += " (Today)";
+        } else if (inspectionDate.toDateString() === yesterday.toDateString()) {
+          dateDisplay += " (Yesterday)";
+        } else {
+          const daysDiff = Math.floor((today - inspectionDate) / (1000 * 60 * 60 * 24));
+          if (daysDiff < 7) {
+            dateDisplay += ` (${daysDiff} days ago)`;
+          } else if (daysDiff < 30) {
+            const weeks = Math.floor(daysDiff / 7);
+            dateDisplay += ` (${weeks} week${weeks > 1 ? 's' : ''} ago)`;
+          }
+        }
+        
+        return <div>{dateDisplay}</div>;
+      },
     },
     {
       header: "Issues",
@@ -486,27 +439,70 @@ export default function AdminDashboard() {
       },
     },
     {
-      header: "Submitted",
+      header: "Submission Status",
       accessorKey: "submittedAt",
-      cell: ({ row }) => (
-        <div>
-          {row.original?.submittedAt
-            ? new Date(row.original.submittedAt).toLocaleString(undefined, {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : "N/A"}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const submittedAt = row.original?.submittedAt;
+        
+        if (!submittedAt) return (
+          <div className="flex items-center">
+            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
+              Pending
+            </Badge>
+          </div>
+        );
+        
+        const submittedDate = new Date(submittedAt);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        // Format the submission date
+        let dateDisplay;
+        if (submittedDate.toDateString() === today.toDateString()) {
+          dateDisplay = "Today";
+        } else if (submittedDate.toDateString() === yesterday.toDateString()) {
+          dateDisplay = "Yesterday";
+        } else {
+          dateDisplay = submittedDate.toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          });
+        }
+        
+        // Add time
+        const timeDisplay = submittedDate.toLocaleTimeString(undefined, {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        
+        return (
+          <div className="space-y-1">
+            <Badge variant="success" className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
+              Submitted
+            </Badge>
+            <div className="text-xs">
+              {dateDisplay} at {timeDisplay}
+            </div>
+          </div>
+        );
+      },
     },
     {
       header: "Actions",
       id: "actions",
       cell: ({ row }) => (
         <div className="flex space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setSelectedInspection(row.original);
+              setShowInspectionDetail(true);
+            }}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -541,31 +537,7 @@ export default function AdminDashboard() {
       let csvContent = "data:text/csv;charset=utf-8,";
 
       // Create headers based on data type
-      if (filename.includes("issues")) {
-        csvContent += "Store,Category,Issue,Status,Date\n";
-
-        // Add rows
-        data.forEach((item) => {
-          if (!item) return;
-
-          const row = [
-            item.storeNumber || "",
-            item.categoryTitle || "",
-            item.description ? `"${item.description.replace(/"/g, '""')}"` : "",
-            item.fixed ? "Fixed" : "Open",
-            item.submittedAt
-              ? new Date(item.submittedAt).toLocaleString(undefined, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "N/A",
-          ];
-          csvContent += row.join(",") + "\n";
-        });
-      } else {
+      if (filename.includes("inspections")) {
         csvContent += "Store,Inspector,Date,Issues,Submitted\n";
 
         // Add rows
@@ -647,7 +619,7 @@ export default function AdminDashboard() {
 
   // Render pagination controls
   const renderPagination = () => {
-    const data = activeTab === "issues" ? filteredIssues : filteredInspections;
+    const data = filteredInspections;
     const filteredData = getFilteredData(data);
     const totalItems = filteredData.length;
     
@@ -671,7 +643,7 @@ export default function AdminDashboard() {
           <span className="text-sm text-muted-foreground">Rows per page:</span>
           <Select
             value={itemsPerPage.toString()}
-            onValueChange={handleItemsPerPageChange}
+            onValueChange={(value) => setItemsPerPage(parseInt(value))}
           >
             <SelectTrigger className="h-8 w-[70px]">
               <SelectValue placeholder={itemsPerPage} />
@@ -693,7 +665,7 @@ export default function AdminDashboard() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => handlePageChange(currentPage - 1)}
+            onClick={() => setCurrentPage(currentPage - 1)}
             disabled={currentPage === 1}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -705,7 +677,7 @@ export default function AdminDashboard() {
               <Button
                 variant={currentPage === 1 ? "default" : "outline"}
                 size="sm"
-                onClick={() => handlePageChange(1)}
+                onClick={() => setCurrentPage(1)}
               >
                 1
               </Button>
@@ -719,7 +691,7 @@ export default function AdminDashboard() {
               key={page}
               variant={page === currentPage ? "default" : "outline"}
               size="sm"
-              onClick={() => handlePageChange(page)}
+              onClick={() => setCurrentPage(page)}
             >
               {page}
             </Button>
@@ -732,7 +704,7 @@ export default function AdminDashboard() {
               <Button
                 variant={currentPage === totalPages ? "default" : "outline"}
                 size="sm"
-                onClick={() => handlePageChange(totalPages)}
+                onClick={() => setCurrentPage(totalPages)}
               >
                 {totalPages}
               </Button>
@@ -742,7 +714,7 @@ export default function AdminDashboard() {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => handlePageChange(currentPage + 1)}
+            onClick={() => setCurrentPage(currentPage + 1)}
             disabled={currentPage === totalPages}
           >
             <ChevronRight className="h-4 w-4" />
@@ -780,7 +752,7 @@ export default function AdminDashboard() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {selectedStore === "all" ? (
                 <>
                   <div className="flex items-center space-x-4">
@@ -790,18 +762,6 @@ export default function AdminDashboard() {
                     <div>
                       <p className="text-sm text-muted-foreground">Total Inspections</p>
                       <p className="text-2xl font-bold">{inspections.length}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-destructive/10 p-2 rounded-full">
-                      <BarChart3 className="h-6 w-6 text-destructive" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Open Issues</p>
-                      <p className="text-2xl font-bold">
-                        {issues.filter(issue => issue && !issue.fixed).length}
-                      </p>
                     </div>
                   </div>
 
@@ -828,19 +788,6 @@ export default function AdminDashboard() {
                   </div>
 
                   <div className="flex items-center space-x-4">
-                    <div className="bg-destructive/10 p-2 rounded-full">
-                      <BarChart3 className="h-6 w-6 text-destructive" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Open Issues</p>
-                      <p className="text-2xl font-bold">{storeStats[selectedStore]?.openIssues || 0}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Trend: {storeStats[selectedStore]?.issueTrend || 'stable'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-4">
                     <div className="bg-green-500/10 p-2 rounded-full">
                       <Store className="h-6 w-6 text-green-500" />
                     </div>
@@ -862,54 +809,14 @@ export default function AdminDashboard() {
 
       <div className="space-y-4">
         <Tabs
-          defaultValue="issues"
+          defaultValue="inspections"
           className="w-full"
           onValueChange={setActiveTab}
         >
           <TabsList className="mb-4">
-            <TabsTrigger value="issues">Issues</TabsTrigger>
             <TabsTrigger value="inspections">Inspections</TabsTrigger>
             <TabsTrigger value="categories">Categories & Items</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="issues">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl">Issues</CardTitle>
-                <CardDescription>
-                  View and manage reported issues
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search issues..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8"
-                    />
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => exportToCsv(getFilteredData(filteredIssues), "issues")}
-                  >
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Export
-                  </Button>
-                </div>
-                <DataTable
-                  columns={issueColumns}
-                  data={getPaginatedData(filteredIssues)}
-                  loading={loading}
-                />
-                <div className="mt-4">
-                  {renderPagination()}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="inspections">
             <Card>
@@ -981,7 +888,6 @@ export default function AdminDashboard() {
             <AlertDialogTitle>Delete Inspection</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this inspection? This action cannot be undone.
-              All associated issues will also be deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -996,6 +902,13 @@ export default function AdminDashboard() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Inspection Detail Dialog */}
+      <InspectionDetailDialog
+        inspection={selectedInspection}
+        open={showInspectionDetail}
+        onOpenChange={setShowInspectionDetail}
+      />
     </div>
   );
 }
