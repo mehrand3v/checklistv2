@@ -59,6 +59,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { EditInspectionDialog } from "@/components/admin/EditInspectionDialog";
 
 export default function AdminDashboard() {
   const { currentUser } = useAuth();
@@ -80,6 +81,10 @@ export default function AdminDashboard() {
   const [inspectionToDelete, setInspectionToDelete] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Edit dialog state
+  const [inspectionToEdit, setInspectionToEdit] = useState(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   // Fetch data
   useEffect(() => {
@@ -258,6 +263,21 @@ export default function AdminDashboard() {
       setShowDeleteDialog(false);
       setInspectionToDelete(null);
     }
+  };
+
+  // Handle edit inspection
+  const handleEditInspection = (inspection) => {
+    setInspectionToEdit(inspection);
+    setShowEditDialog(true);
+  };
+
+  // Handle inspection update
+  const handleInspectionUpdate = (updatedInspection) => {
+    setInspections((prev) =>
+      prev.map((inspection) =>
+        inspection.id === updatedInspection.id ? updatedInspection : inspection
+      )
+    );
   };
 
   // Columns for issues table
@@ -490,10 +510,7 @@ export default function AdminDashboard() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => {
-              // TODO: Implement edit functionality
-              toast.info("Edit functionality coming soon");
-            }}
+            onClick={() => handleEditInspection(row.original)}
           >
             <Edit className="h-4 w-4" />
           </Button>
@@ -949,7 +966,15 @@ export default function AdminDashboard() {
         </Tabs>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Edit Dialog */}
+      <EditInspectionDialog
+        inspection={inspectionToEdit}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        onUpdate={handleInspectionUpdate}
+      />
+
+      {/* Delete Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -493,3 +493,52 @@ export const getInspectionItems = async () => {
     return { success: false, error: error.message };
   }
 };
+
+// Update an inspection
+export const updateInspection = async (inspectionId, inspectionData) => {
+  try {
+    if (!inspectionId) {
+      throw new Error('Inspection ID is required');
+    }
+
+    if (!inspectionData || typeof inspectionData !== 'object') {
+      throw new Error('Invalid inspection data');
+    }
+
+    if (!inspectionData.storeNumber || !inspectionData.inspectedBy) {
+      throw new Error('Store number and inspector name are required');
+    }
+
+    if (!Array.isArray(inspectionData.categories) || inspectionData.categories.length === 0) {
+      throw new Error('At least one category is required');
+    }
+
+    const docRef = doc(db, COLLECTIONS.INSPECTIONS, inspectionId);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      return { success: false, error: "Inspection not found" };
+    }
+
+    // Create the update payload
+    const updatePayload = {
+      storeNumber: inspectionData.storeNumber.trim(),
+      inspectedBy: inspectionData.inspectedBy.trim(),
+      clientDate: inspectionData.clientDate,
+      lastUpdated: serverTimestamp(),
+    };
+
+    await updateDoc(docRef, updatePayload);
+
+    return {
+      success: true,
+      inspection: {
+        id: inspectionId,
+        ...updatePayload,
+      },
+    };
+  } catch (error) {
+    console.error("Error updating inspection:", error);
+    return { success: false, error: error.message };
+  }
+};
