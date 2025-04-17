@@ -207,7 +207,7 @@ export default function CategoryPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1, duration: 0.3 }}
           >
-            <InspectionItem item={item} />
+            <InspectionItem item={{ ...item, categoryId: category.id }} />
           </motion.div>
         ))}
       </div>

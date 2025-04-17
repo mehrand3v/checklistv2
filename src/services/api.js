@@ -99,10 +99,24 @@ export const getAllInspections = async (limitCount = 50) => {
       const data = doc.data();
       inspections.push({
         id: doc.id,
-        ...data,
-        submittedAt: data.submittedAt?.toDate() || null,
-        inspectionDate:
-          data.inspectionDate?.toDate() || new Date(data.clientDate) || null,
+        storeNumber: data.storeNumber || '',
+        inspectedBy: data.inspectedBy || '',
+        inspectionDate: data.inspectionDate?.toDate?.() || data.clientDate || new Date(),
+        submittedAt: data.submittedAt?.toDate?.() || new Date(),
+        categories: data.categories?.map(category => ({
+          id: category.id,
+          title: category.title,
+          items: category.items?.map(item => ({
+            id: item.id,
+            description: item.description,
+            status: item.status,
+            fixed: item.fixed || false,
+            notes: item.notes || ''
+          })) || []
+        })) || [],
+        status: data.status || 'pending',
+        notes: data.notes || '',
+        fixed: data.fixed || false
       });
     });
 

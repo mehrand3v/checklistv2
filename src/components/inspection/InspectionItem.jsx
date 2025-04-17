@@ -37,6 +37,7 @@ export default function InspectionItem({ item }) {
   }, [item.status]);
 
   const handleStatusChange = (value) => {
+    console.log('Status change:', { categoryId: item.categoryId, itemId: item.id, newStatus: value });
     updateInspectionItem(item.categoryId, item.id, { status: value });
     
     // Highlight the item briefly when changed
@@ -122,30 +123,41 @@ export default function InspectionItem({ item }) {
           </div>
 
           {/* Radio buttons for status selection */}
-          <RadioGroup
-            value={item.status || ""}
-            onValueChange={handleStatusChange}
-            className="flex space-x-4 mt-4"
-          >
-            <div className={`flex-1 relative ${item.status === "yes" ? "bg-green-50 dark:bg-green-900/20" : "bg-slate-50 dark:bg-slate-800"}`}>
-              <label 
-                className="flex items-center justify-center space-x-2 px-4 py-3 rounded-md cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 w-full"
-                htmlFor={`${item.id}-yes`}
-              >
-                <RadioGroupItem value="yes" id={`${item.id}-yes`} />
-                <span className="text-base select-none">Yes</span>
-              </label>
-            </div>
-            <div className={`flex-1 relative ${item.status === "no" ? "bg-red-50 dark:bg-red-900/20" : "bg-slate-50 dark:bg-slate-800"}`}>
-              <label 
-                className="flex items-center justify-center space-x-2 px-4 py-3 rounded-md cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 w-full"
-                htmlFor={`${item.id}-no`}
-              >
-                <RadioGroupItem value="no" id={`${item.id}-no`} />
-                <span className="text-base select-none">No</span>
-              </label>
-            </div>
-          </RadioGroup>
+          <div className="flex space-x-4 mt-4">
+            <label 
+              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-md cursor-pointer transition-colors
+                ${item.status === "yes" 
+                  ? "bg-green-50 dark:bg-green-900/20 border-2 border-green-500" 
+                  : "bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
+            >
+              <input
+                type="radio"
+                name={`status-${item.id}`}
+                value="yes"
+                checked={item.status === "yes"}
+                onChange={() => handleStatusChange("yes")}
+                className="w-5 h-5 text-green-500 border-2 border-slate-400 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              />
+              <span className="text-base select-none">Yes</span>
+            </label>
+
+            <label 
+              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-md cursor-pointer transition-colors
+                ${item.status === "no" 
+                  ? "bg-red-50 dark:bg-red-900/20 border-2 border-red-500" 
+                  : "bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700"}`}
+            >
+              <input
+                type="radio"
+                name={`status-${item.id}`}
+                value="no"
+                checked={item.status === "no"}
+                onChange={() => handleStatusChange("no")}
+                className="w-5 h-5 text-red-500 border-2 border-slate-400 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              />
+              <span className="text-base select-none">No</span>
+            </label>
+          </div>
         </div>
 
         {/* Expandable details section for issues */}

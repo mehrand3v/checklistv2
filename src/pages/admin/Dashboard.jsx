@@ -61,6 +61,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { EditInspectionDialog } from "@/components/admin/EditInspectionDialog";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 
 // Add this new component for viewing inspection details
 function InspectionDetailDialog({ inspection, open, onOpenChange }) {
@@ -68,101 +70,138 @@ function InspectionDetailDialog({ inspection, open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Inspection Details</DialogTitle>
-          <DialogDescription>
-            Complete inspection results for Store {inspection.storeNumber}
-          </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-6 py-4">
-          {/* Inspection Header */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Store</p>
-              <p className="text-lg font-semibold">{inspection.storeNumber}</p>
+              <h3 className="font-semibold">Store Number</h3>
+              <p>{inspection.storeNumber}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Inspector</p>
-              <p className="text-lg font-semibold">{inspection.inspectedBy}</p>
+              <h3 className="font-semibold">Inspector</h3>
+              <p>{inspection.inspectedBy}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Date</p>
-              <p className="text-lg font-semibold">
-                {inspection.inspectionDate
-                  ? new Date(inspection.inspectionDate).toLocaleDateString(undefined, {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })
-                  : inspection.clientDate
-                  ? new Date(inspection.clientDate).toLocaleDateString(undefined, {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })
-                  : "N/A"}
-              </p>
+              <h3 className="font-semibold">Inspection Date</h3>
+              <p>{new Date(inspection.inspectionDate).toLocaleDateString()}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold">Status</h3>
+              <Badge variant={inspection.fixed ? "success" : "destructive"}>
+                {inspection.fixed ? "Fixed" : "Pending"}
+              </Badge>
             </div>
           </div>
 
-          {/* Categories and Items */}
-          {inspection.categories && inspection.categories.length > 0 ? (
-            <div className="space-y-6">
-              {inspection.categories.map((category, categoryIndex) => (
-                <Card key={categoryIndex}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">{category.title}</CardTitle>
-                    <CardDescription>
-                      {category.items && category.items.length > 0
-                        ? `${category.items.filter(item => item && item.status === "no").length} issues found`
-                        : "No issues found"}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {category.items && category.items.map((item, itemIndex) => (
-                        <div key={itemIndex} className="border-b pb-3 last:border-0 last:pb-0">
-                          <div className="flex items-start justify-between">
-                            <div className="space-y-1">
-                              <p className="font-medium">{item.text}</p>
-                              {item.notes && (
-                                <p className="text-sm text-muted-foreground">{item.notes}</p>
-                              )}
-                            </div>
-                            <Badge
-                              variant={item.status === "yes" ? "outline" : item.fixed ? "success" : "destructive"}
-                              className="ml-2"
-                            >
-                              {item.status === "yes" ? "Pass" : item.fixed ? "Fixed" : "Fail"}
-                            </Badge>
-                          </div>
-                          {item.hasPhoto && (
-                            <div className="mt-2">
-                              <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                                <Eye className="h-3 w-3" />
-                                Photo available
-                              </Badge>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Categories</h3>
+            {inspection.categories?.map((category) => (
+              <div key={category.id} className="border rounded-lg p-4">
+                <h4 className="font-semibold mb-2">{category.title}</h4>
+                <div className="space-y-2">
+                  {category.items?.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-start justify-between p-2 bg-muted/50 rounded"
+                    >
+                      <div className="flex-1">
+                        <p className="font-medium">{item.description}</p>
+                        {item.notes && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Notes: {item.notes}
+                          </p>
+                        )}
+                      </div>
+                      <div className="ml-4">
+                        <Badge
+                          variant={
+                            item.status === "yes"
+                              ? "success"
+                              : item.fixed
+                              ? "default"
+                              : "destructive"
+                          }
+                        >
+                          {item.status === "yes"
+                            ? "Pass"
+                            : item.fixed
+                            ? "Fixed"
+                            : "Fail"}
+                        </Badge>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              No categories or items found in this inspection.
-            </div>
-          )}
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
+// Add this function before the AdminDashboard component
+const generatePDF = async (inspection) => {
+  try {
+    // Create a temporary div to render the inspection content
+    const content = document.createElement('div');
+    content.innerHTML = `
+      <div style="padding: 20px; font-family: Arial, sans-serif;">
+        <h1 style="text-align: center; margin-bottom: 20px;">Inspection Report</h1>
+        <div style="margin-bottom: 20px;">
+          <p><strong>Store Number:</strong> ${inspection.storeNumber}</p>
+          <p><strong>Inspector:</strong> ${inspection.inspectedBy}</p>
+          <p><strong>Date:</strong> ${inspection.inspectionDate ? new Date(inspection.inspectionDate).toLocaleDateString() : 'N/A'}</p>
+        </div>
+        ${inspection.categories.map(category => `
+          <div style="margin-bottom: 20px;">
+            <h2 style="color: #333; border-bottom: 2px solid #333; padding-bottom: 5px;">${category.title}</h2>
+            <div style="margin-left: 20px;">
+              ${category.items.map(item => `
+                <div style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                  <p style="margin: 0;"><strong>${item.description}</strong></p>
+                  <p style="margin: 5px 0; color: ${item.status === 'yes' ? 'green' : item.fixed ? 'blue' : 'red'}">
+                    Status: ${item.status === 'yes' ? 'Pass' : item.fixed ? 'Fixed' : 'Fail'}
+                  </p>
+                  ${item.notes ? `<p style="margin: 5px 0; font-style: italic;">Notes: ${item.notes}</p>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    document.body.appendChild(content);
+
+    // Generate PDF
+    const canvas = await html2canvas(content);
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+    // Download the PDF
+    pdf.save(`inspection-${inspection.storeNumber}-${new Date().toISOString().split('T')[0]}.pdf`);
+
+    // Clean up
+    document.body.removeChild(content);
+    toast.success("PDF downloaded successfully");
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    toast.error("Failed to generate PDF");
+  }
+};
 
 export default function AdminDashboard() {
   const { currentUser } = useAuth();
@@ -509,6 +548,13 @@ export default function AdminDashboard() {
             onClick={() => handleEditInspection(row.original)}
           >
             <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => generatePDF(row.original)}
+          >
+            <FileDown className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
@@ -895,7 +941,7 @@ export default function AdminDashboard() {
             <AlertDialogAction
               onClick={handleDeleteInspection}
               disabled={deleteLoading}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-red-600 text-white hover:bg-red-700"
             >
               {deleteLoading ? "Deleting..." : "Delete"}
             </AlertDialogAction>
