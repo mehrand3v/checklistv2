@@ -8,6 +8,15 @@ import { Toaster } from "sonner";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Add this style to disable pull-to-refresh
+const disablePullToRefreshStyle = `
+  html, body {
+    overscroll-behavior-y: none;
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+`;
+
 export default function RootLayout() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,7 +32,22 @@ export default function RootLayout() {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     
-    return () => window.removeEventListener('resize', checkMobile);
+    // Add meta tag to disable pull-to-refresh
+    const metaTag = document.createElement('meta');
+    metaTag.name = 'viewport';
+    metaTag.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+    document.head.appendChild(metaTag);
+    
+    // Add style to disable pull-to-refresh
+    const styleElement = document.createElement('style');
+    styleElement.textContent = disablePullToRefreshStyle;
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      document.head.removeChild(metaTag);
+      document.head.removeChild(styleElement);
+    };
   }, []);
 
   // Toggle admin link visibility
@@ -47,63 +71,65 @@ export default function RootLayout() {
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold">CSR Daily Walk</h1>
           </div>
-
-          {!isAdminPage && (
-            <div className="flex items-center gap-2">
-              {isMobile ? (
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                    <div className="flex flex-col gap-4 py-4">
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start"
-                        onClick={goToAdminLogin}
-                      >
-                        <LockKeyhole className="mr-2 h-4 w-4" />
-                        Admin Login
-                      </Button>
-                    </div>
-                  </SheetContent>
-                </Sheet>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleAdminLink}
-                  aria-label="Admin Access"
-                >
-                  <LockKeyhole className="h-5 w-5" />
+          
+          {/* Mobile menu button */}
+          {isMobile && !isAdminPage && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
                 </Button>
-              )}
-            </div>
+              </SheetTrigger>
+              <SheetContent side="right">
+                <div className="flex flex-col gap-4 py-4">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={goToAdminLogin}
+                  >
+                    <LockKeyhole className="mr-2 h-4 w-4" />
+                    Admin Login
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
           )}
-        </div>
-
-        {/* Admin link dropdown - Desktop only */}
-        <AnimatePresence>
-          {showAdminLink && !isAdminPage && !isMobile && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="absolute right-4 mt-2 bg-card shadow-lg rounded-md border border-border p-2 z-50"
-            >
+          
+          {/* Desktop admin link */}
+          {!isMobile && !isAdminPage && (
+            <div className="relative">
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start"
-                onClick={goToAdminLogin}
+                onClick={toggleAdminLink}
               >
-                Admin Login
+                <LockKeyhole className="mr-2 h-4 w-4" />
+                Admin
               </Button>
-            </motion.div>
+              
+              {/* Admin link dropdown - Desktop only */}
+              <AnimatePresence>
+                {showAdminLink && !isAdminPage && !isMobile && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute right-4 mt-2 bg-card shadow-lg rounded-md border border-border p-2 z-50"
+                  >
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start"
+                      onClick={goToAdminLogin}
+                    >
+                      Admin Login
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </header>
 
       {/* Main Content */}
