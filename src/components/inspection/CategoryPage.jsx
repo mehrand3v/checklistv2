@@ -229,10 +229,19 @@ export default function CategoryPage() {
               variant={categoryComplete ? "default" : "outline"}
               onClick={goToNextCategory}
               className="flex-1 ml-2"
-              disabled={categoryIndex === inspectionData.length - 1}
+              disabled={!categoryComplete}
             >
-              Next
-              <ChevronRight className="ml-2 h-4 w-4" />
+              {categoryIndex === inspectionData.length - 1 ? (
+                <>
+                  Review
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  Next
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </>
+              )}
             </Button>
           </div>
         </div>

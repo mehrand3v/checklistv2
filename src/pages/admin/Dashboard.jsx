@@ -161,119 +161,161 @@ const generatePDF = async (inspections) => {
   try {
     console.log("Starting PDF generation with data:", inspections);
     
-    // Create a temporary div to render the inspection content
-    const content = document.createElement('div');
-    content.style.padding = '20px';
-    content.style.fontFamily = 'Arial, sans-serif';
-    content.style.maxWidth = '800px';
-    content.style.margin = '0 auto';
-    content.style.backgroundColor = '#ffffff';
-    content.style.position = 'absolute';
-    content.style.left = '-9999px';
-    content.style.top = '0';
-
-    // Add title
-    content.innerHTML = `
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #333; margin-bottom: 10px;">Inspection Reports</h1>
-        <p style="color: #666;">Generated on ${new Date().toLocaleDateString()}</p>
-      </div>
-    `;
-
-    // Add each inspection
-    const inspectionsArray = Array.isArray(inspections) ? inspections : [inspections];
-    console.log("Processing inspections array:", inspectionsArray);
-    
-    inspectionsArray.forEach((inspection, index) => {
-      content.innerHTML += `
-        <div style="margin-bottom: 40px; page-break-after: always;">
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-            <h2 style="color: #333; margin-bottom: 15px;">Inspection #${index + 1}</h2>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-              <div>
-                <p style="margin: 5px 0;"><strong>Store Number:</strong> ${inspection.storeNumber || 'N/A'}</p>
-                <p style="margin: 5px 0;"><strong>Inspector:</strong> ${inspection.inspectedBy || 'N/A'}</p>
-              </div>
-              <div>
-                <p style="margin: 5px 0;"><strong>Date:</strong> ${inspection.inspectionDate ? new Date(inspection.inspectionDate).toLocaleDateString() : 'N/A'}</p>
-                <p style="margin: 5px 0;"><strong>Status:</strong> ${inspection.submittedAt ? 'Submitted' : 'Pending'}</p>
-              </div>
-            </div>
-          </div>
-          ${inspection.categories?.map(category => `
-            <div style="margin-bottom: 25px;">
-              <h3 style="color: #333; border-bottom: 2px solid #333; padding-bottom: 5px; margin-bottom: 15px;">${category.title}</h3>
-              <div style="margin-left: 20px;">
-                ${category.items?.map(item => `
-                  <div style="margin-bottom: 15px; padding: 12px; border: 1px solid #ddd; border-radius: 6px; background-color: ${item.status === 'yes' ? '#f0fff4' : item.fixed ? '#f0f7ff' : '#fff0f0'}">
-                    <p style="margin: 0 0 8px 0; font-weight: bold;">${item.description}</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: ${item.status === 'yes' ? 'green' : item.fixed ? 'blue' : 'red'}; font-weight: bold;">
-                        Status: ${item.status === 'yes' ? 'Pass' : item.fixed ? 'Fixed' : 'Fail'}
-                      </span>
-                      ${item.notes ? `<span style="color: #666; font-style: italic;">Notes: ${item.notes}</span>` : ''}
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-    });
-
-    console.log("Content created, appending to document");
-    document.body.appendChild(content);
-
-    // Generate PDF
-    console.log("Starting html2canvas conversion");
-    const canvas = await html2canvas(content, {
-      scale: 2,
-      useCORS: true,
-      logging: true,
-      backgroundColor: '#ffffff',
-      allowTaint: true,
-      foreignObjectRendering: true,
-      windowWidth: 800,
-      windowHeight: content.scrollHeight
-    });
-    
-    console.log("Canvas created, converting to image");
-    const imgData = canvas.toDataURL('image/png');
-    
-    console.log("Creating PDF");
+    // Create PDF document
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4'
     });
-    
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    
-    // Add multiple pages if content is too long
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    let heightLeft = pdfHeight;
-    let position = 0;
-    
-    console.log("Adding image to PDF");
-    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-    heightLeft -= pageHeight;
-    
-    while (heightLeft >= 0) {
-      position = heightLeft - pdfHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-    }
 
-    console.log("Saving PDF");
-    // Download the PDF
+    // Set font
+    pdf.setFont("helvetica");
+    
+    // Add title
+    pdf.setFontSize(20);
+    pdf.text("Inspection Reports", 105, 20, { align: "center" });
+    
+    pdf.setFontSize(12);
+    pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 30, { align: "center" });
+    
+    // Process each inspection
+    const inspectionsArray = Array.isArray(inspections) ? inspections : [inspections];
+    let yOffset = 40; // Start position for content
+    
+    // Helper function to wrap text
+    const wrapText = (text, maxWidth) => {
+      if (!text) return [];
+      const words = text.split(' ');
+      const lines = [];
+      let currentLine = words[0];
+
+      for (let i = 1; i < words.length; i++) {
+        const word = words[i];
+        const width = pdf.getStringUnitWidth(currentLine + " " + word) * pdf.getFontSize() / pdf.internal.scaleFactor;
+        if (width < maxWidth) {
+          currentLine += " " + word;
+        } else {
+          lines.push(currentLine);
+          currentLine = word;
+        }
+      }
+      lines.push(currentLine);
+      return lines;
+    };
+
+    // Helper function to add wrapped text
+    const addWrappedText = (text, x, y, maxWidth, lineHeight) => {
+      const lines = wrapText(text, maxWidth);
+      lines.forEach((line, index) => {
+        pdf.text(line, x, y + (index * lineHeight));
+      });
+      return lines.length * lineHeight;
+    };
+    
+    inspectionsArray.forEach((inspection, index) => {
+      // Check if we need a new page
+      if (yOffset > 250) {
+        pdf.addPage();
+        yOffset = 20;
+      }
+      
+      // Add inspection header
+      pdf.setFontSize(16);
+      pdf.text(`Inspection #${index + 1}`, 20, yOffset);
+      yOffset += 10;
+      
+      // Add inspection details
+      pdf.setFontSize(12);
+      pdf.setFillColor(248, 249, 250);
+      pdf.rect(20, yOffset, 170, 25, "F");
+      
+      // Store info
+      pdf.text(`Store Number: ${inspection.storeNumber || 'N/A'}`, 25, yOffset + 7);
+      pdf.text(`Inspector: ${inspection.inspectedBy || 'N/A'}`, 25, yOffset + 15);
+      
+      // Date info
+      pdf.text(`Date: ${inspection.inspectionDate ? new Date(inspection.inspectionDate).toLocaleDateString() : 'N/A'}`, 110, yOffset + 7);
+      pdf.text(`Status: ${inspection.submittedAt ? 'Submitted' : 'Pending'}`, 110, yOffset + 15);
+      
+      yOffset += 35;
+      
+      // Add categories
+      inspection.categories?.forEach(category => {
+        // Check if we need a new page
+        if (yOffset > 250) {
+          pdf.addPage();
+          yOffset = 20;
+        }
+        
+        // Category title
+        pdf.setFontSize(14);
+        pdf.setDrawColor(51, 51, 51);
+        pdf.line(20, yOffset, 190, yOffset);
+        pdf.text(category.title, 20, yOffset - 5);
+        yOffset += 15;
+        
+        // Category items
+        category.items?.forEach(item => {
+          // Check if we need a new page
+          if (yOffset > 250) {
+            pdf.addPage();
+            yOffset = 20;
+          }
+          
+          // Calculate height needed for content
+          const descriptionLines = wrapText(item.description, 150);
+          const notesLines = item.notes ? wrapText(item.notes, 150) : [];
+          const totalHeight = Math.max(20, (descriptionLines.length + notesLines.length + 1) * 5);
+          
+          // Item box
+          pdf.setFontSize(11);
+          const itemColor = item.status === 'yes' ? [240, 255, 244] : item.fixed ? [240, 247, 255] : [255, 240, 240];
+          pdf.setFillColor(...itemColor);
+          pdf.rect(20, yOffset, 170, totalHeight, "F");
+          
+          // Item content
+          pdf.setTextColor(0, 0, 0);
+          let currentY = yOffset + 7;
+          
+          // Description
+          descriptionLines.forEach((line, i) => {
+            pdf.text(line, 25, currentY);
+            currentY += 5;
+          });
+          
+          // Status
+          const statusText = item.status === 'yes' ? 'Pass' : item.fixed ? 'Fixed' : 'Fail';
+          const statusColor = item.status === 'yes' ? [0, 128, 0] : item.fixed ? [0, 0, 255] : [255, 0, 0];
+          pdf.setTextColor(...statusColor);
+          pdf.text(`Status: ${statusText}`, 25, currentY);
+          
+          // Notes
+          if (item.notes) {
+            currentY += 5;
+            pdf.setTextColor(102, 102, 102);
+            pdf.setFontSize(10);
+            notesLines.forEach((line, i) => {
+              pdf.text(`Note: ${line}`, 25, currentY);
+              currentY += 5;
+            });
+          }
+          
+          pdf.setTextColor(0, 0, 0);
+          yOffset += totalHeight + 5;
+        });
+        
+        yOffset += 10;
+      });
+      
+      // Add page break after each inspection
+      if (index < inspectionsArray.length - 1) {
+        pdf.addPage();
+        yOffset = 20;
+      }
+    });
+    
+    // Save the PDF
     pdf.save(`inspections-${new Date().toISOString().split('T')[0]}.pdf`);
-
-    // Clean up
-    document.body.removeChild(content);
     toast.success("PDF downloaded successfully");
   } catch (error) {
     console.error("Error generating PDF:", error);
