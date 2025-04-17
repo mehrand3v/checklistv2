@@ -172,28 +172,49 @@ export function InspectionProvider({ children }) {
 
   // Submit the inspection to Firestore
   const submitInspection = async () => {
-    // We'll implement the actual Firebase submission in a separate service
-    // For now, just prepare the data structure
-    const inspectionPayload = {
-      ...storeInfo,
-      clientDate: new Date().toISOString(), // Add client date for reference
-      categories: inspectionData.map((category) => ({
-        id: category.id,
-        title: category.title,
-        items: category.items.map((item) => ({
+    // Validate required fields
+    if (!storeInfo.storeNumber || !storeInfo.inspectedBy) {
+      throw new Error("Store number and inspector name are required");
+    }
+
+    // Clean and validate categories and items
+    const cleanedCategories = inspectionData.map((category) => {
+      if (!category.id || !category.title) {
+        throw new Error(`Invalid category data: ${JSON.stringify(category)}`);
+      }
+
+      const cleanedItems = category.items.map((item) => {
+        if (!item.id || !item.description || item.status === undefined) {
+          throw new Error(`Invalid item data: ${JSON.stringify(item)}`);
+        }
+
+        return {
           id: item.id,
           description: item.description,
           status: item.status,
-          fixed: item.fixed,
-          notes: item.notes,
-        })),
-      })),
+          fixed: item.fixed || false,
+          notes: item.notes || "",
+        };
+      });
+
+      return {
+        id: category.id,
+        title: category.title,
+        items: cleanedItems,
+      };
+    });
+
+    // Prepare the data structure
+    const inspectionPayload = {
+      storeNumber: storeInfo.storeNumber.trim(),
+      inspectedBy: storeInfo.inspectedBy.trim(),
+      clientDate: new Date().toISOString(),
+      categories: cleanedCategories,
     };
 
     // For debugging
     console.log("Inspection payload:", inspectionPayload);
 
-    // Return the payload for now - we'll replace this with actual submission later
     return inspectionPayload;
   };
 

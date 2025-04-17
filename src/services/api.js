@@ -25,24 +25,49 @@ const COLLECTIONS = {
 // Submit a new inspection
 export const submitInspection = async (inspectionData) => {
   try {
+    // Validate the input data
+    if (!inspectionData || typeof inspectionData !== 'object') {
+      throw new Error('Invalid inspection data');
+    }
+
+    if (!inspectionData.storeNumber || !inspectionData.inspectedBy) {
+      throw new Error('Store number and inspector name are required');
+    }
+
+    if (!Array.isArray(inspectionData.categories) || inspectionData.categories.length === 0) {
+      throw new Error('At least one category is required');
+    }
+
     // Create the final payload (without photo references)
-    const processedCategories = inspectionData.categories.map((category) => ({
-      ...category,
-      items: category.items.map((item) => ({
-        ...item,
-        // Remove any photo-related properties if they exist
-        hasPhoto: undefined,
-        photoUrl: undefined,
-      })),
-    }));
+    const processedCategories = inspectionData.categories.map((category) => {
+      if (!category.id || !category.title || !Array.isArray(category.items)) {
+        throw new Error(`Invalid category data: ${JSON.stringify(category)}`);
+      }
+
+      return {
+        id: category.id,
+        title: category.title,
+        items: category.items.map((item) => {
+          if (!item.id || !item.description || item.status === undefined) {
+            throw new Error(`Invalid item data: ${JSON.stringify(item)}`);
+          }
+
+          return {
+            id: item.id,
+            description: item.description,
+            status: item.status,
+            fixed: item.fixed || false,
+            notes: item.notes || "",
+          };
+        }),
+      };
+    });
 
     const payload = {
-      storeNumber: inspectionData.storeNumber,
-      inspectedBy: inspectionData.inspectedBy,
-      // Use serverTimestamp for the official timestamp
+      storeNumber: inspectionData.storeNumber.trim(),
+      inspectedBy: inspectionData.inspectedBy.trim(),
       inspectionDate: serverTimestamp(),
-      // Client date is already in the payload
-      clientDate: inspectionData.clientDate,
+      clientDate: inspectionData.clientDate || new Date().toISOString(),
       submittedAt: serverTimestamp(),
       categories: processedCategories,
     };
@@ -261,10 +286,10 @@ export const saveCategory = async (categoryData) => {
       }
     }
 
-    // Prepare category data
+    // Prepare category data with all required fields
     const categoryPayload = {
       title: categoryData.title,
-      icon: categoryData.icon,
+      icon: categoryData.icon || "Utensils", // Default icon if not provided
       order,
       updatedAt: serverTimestamp(),
     };
@@ -276,12 +301,13 @@ export const saveCategory = async (categoryData) => {
     // Save to Firestore
     await setDoc(categoryRef, categoryPayload, { merge: true });
 
-    // Return the saved category with its ID
+    // Return the saved category with its ID and properly formatted structure
     return {
       success: true,
       category: {
         id: categoryId,
-        ...categoryPayload,
+        title: categoryData.title,
+        icon: categoryData.icon || "Utensils",
         items: [], // Empty items array for new categories
       },
     };
@@ -356,7 +382,7 @@ export const saveItem = async (categoryId, itemData) => {
       }
     }
 
-    // Prepare item data
+    // Prepare item data with all required fields
     const itemPayload = {
       description: itemData.description,
       categoryId,
@@ -371,12 +397,14 @@ export const saveItem = async (categoryId, itemData) => {
     // Save to Firestore
     await setDoc(itemRef, itemPayload, { merge: true });
 
-    // Return the saved item with its ID
+    // Return the saved item with its ID and properly formatted structure
     return {
       success: true,
       item: {
         id: itemId,
-        ...itemPayload,
+        description: itemData.description,
+        categoryId,
+        order,
       },
     };
   } catch (error) {
@@ -411,18 +439,36 @@ export const getInspectionItems = async () => {
     }
 
     // Format categories and items for the inspection form
-    const formattedCategories = result.categories.map((category) => ({
-      id: category.id,
-      title: category.title,
-      icon: category.icon,
-      items: category.items.map((item) => ({
-        id: item.id,
-        description: item.description,
-        status: null,
-        fixed: false,
-        notes: "",
-      })),
-    }));
+    const formattedCategories = result.categories.map((category) => {
+      // Ensure all required fields are present
+      if (!category.id || !category.title) {
+        console.error(`Invalid category data: ${JSON.stringify(category)}`);
+        return null;
+      }
+
+      // Format items with default values for inspection
+      const formattedItems = category.items.map((item) => {
+        if (!item.id || !item.description) {
+          console.error(`Invalid item data: ${JSON.stringify(item)}`);
+          return null;
+        }
+
+        return {
+          id: item.id,
+          description: item.description,
+          status: null,
+          fixed: false,
+          notes: "",
+        };
+      }).filter(Boolean); // Remove any null items
+
+      return {
+        id: category.id,
+        title: category.title,
+        icon: category.icon || "Utensils", // Default icon if not provided
+        items: formattedItems,
+      };
+    }).filter(Boolean); // Remove any null categories
 
     return { success: true, categories: formattedCategories };
   } catch (error) {

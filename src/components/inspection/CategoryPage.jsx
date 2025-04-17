@@ -1,10 +1,11 @@
 // src/components/inspection/CategoryPage.jsx
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
+  AlertCircle,
   Utensils,
   Coffee,
   Pizza,
@@ -14,9 +15,13 @@ import {
   Truck,
   Building,
   Loader2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import InspectionItem from "./InspectionItem";
 import { useInspection } from "@/context/InspectionContext";
 
@@ -43,6 +48,7 @@ export default function CategoryPage() {
   const { categoryId } = useParams();
   const { inspectionData, getCompletionStatus, isCategoryComplete, loading } =
     useInspection();
+  const [showSummary, setShowSummary] = useState(false);
 
   // Find the current category
   const category = useMemo(() => {
@@ -63,6 +69,24 @@ export default function CategoryPage() {
   const categoryComplete = useMemo(() => {
     return isCategoryComplete(categoryId);
   }, [categoryId, isCategoryComplete]);
+
+  // Get category statistics
+  const categoryStats = useMemo(() => {
+    if (!category) return null;
+    
+    const total = category.items.length;
+    const completed = category.items.filter(item => item.status !== null).length;
+    const issues = category.items.filter(item => item.status === "no").length;
+    const fixed = category.items.filter(item => item.status === "no" && item.fixed).length;
+    
+    return {
+      total,
+      completed,
+      issues,
+      fixed,
+      percentComplete: total ? Math.round((completed / total) * 100) : 0
+    };
+  }, [category]);
 
   // Navigation functions
   const goToPreviousCategory = () => {
@@ -122,6 +146,17 @@ export default function CategoryPage() {
               <CheckCircle2 className="ml-2 text-green-500 w-5 h-5" />
             )}
           </h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowSummary(!showSummary)}
+          >
+            {showSummary ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </Button>
         </div>
 
         <div className="mb-4">
@@ -134,6 +169,31 @@ export default function CategoryPage() {
           </div>
           <Progress value={completionStatus.percentComplete} />
         </div>
+
+        {showSummary && categoryStats && (
+          <Card className="mb-4">
+            <CardContent className="pt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{categoryStats.completed}</div>
+                  <div className="text-sm text-muted-foreground">Completed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{categoryStats.issues}</div>
+                  <div className="text-sm text-muted-foreground">Issues</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{categoryStats.fixed}</div>
+                  <div className="text-sm text-muted-foreground">Fixed</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{categoryStats.percentComplete}%</div>
+                  <div className="text-sm text-muted-foreground">Complete</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <div className="space-y-4">

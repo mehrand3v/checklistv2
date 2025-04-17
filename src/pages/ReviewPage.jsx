@@ -112,38 +112,19 @@ export default function ReviewPage() {
         <CardHeader>
           <CardTitle className="text-2xl">Review Inspection</CardTitle>
         </CardHeader>
-
-        <CardContent className="space-y-6">
-          {/* Store Info */}
-          <div className="space-y-3">
+        <CardContent>
+          {/* Store Information */}
+          <div className="space-y-4 mb-6">
             <h3 className="font-semibold text-lg">Store Information</h3>
-            <div className="grid grid-cols-1 gap-2">
-              <div className="flex items-center">
-                <Store className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>
-                  Store: <strong>{storeInfo.storeNumber}</strong>
-                </span>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-sm text-muted-foreground">Store Number</div>
+                <div className="font-medium">{storeInfo.storeNumber}</div>
               </div>
-              <div className="flex items-center">
-                <User className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>
-                  Inspector: <strong>{storeInfo.inspectedBy}</strong>
-                </span>
+              <div>
+                <div className="text-sm text-muted-foreground">Inspector</div>
+                <div className="font-medium">{storeInfo.inspectedBy}</div>
               </div>
-            </div>
-          </div>
-
-          {/* Progress */}
-          <div className="space-y-2">
-            <h3 className="font-semibold text-lg">Completion Status</h3>
-            <div className="flex items-center justify-between">
-              <span>
-                {completionStatus.completedItems} of{" "}
-                {completionStatus.totalItems} items completed
-              </span>
-              <Badge variant={canSubmit ? "default" : "outline"}>
-                {canSubmit ? "Ready to Submit" : "Incomplete"}
-              </Badge>
             </div>
           </div>
 
@@ -166,17 +147,35 @@ export default function ReviewPage() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <ul className="space-y-2 text-sm">
+                    <ul className="space-y-4">
                       {category.items.map((item) => (
-                        <li key={item.id} className="flex items-start">
-                          {item.status === "yes" ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                          ) : item.status === "no" ? (
-                            <AlertCircle className="h-4 w-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-                          ) : (
-                            <div className="h-4 w-4 rounded-full bg-gray-200 mr-2 mt-0.5 flex-shrink-0" />
-                          )}
-                          <span>{item.description}</span>
+                        <li key={item.id} className="space-y-2">
+                          <div className="flex items-start">
+                            {item.status === "yes" ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                            ) : item.status === "no" ? (
+                              <AlertCircle className="h-4 w-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                            ) : (
+                              <div className="h-4 w-4 rounded-full bg-gray-200 mr-2 mt-0.5 flex-shrink-0" />
+                            )}
+                            <div className="flex-1">
+                              <span>{item.description}</span>
+                              {item.status === "no" && (
+                                <div className="mt-2 space-y-2">
+                                  {item.fixed && (
+                                    <Badge variant="outline" className="text-green-500">
+                                      Fixed
+                                    </Badge>
+                                  )}
+                                  {item.notes && (
+                                    <p className="text-sm text-muted-foreground">
+                                      Notes: {item.notes}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </li>
                       ))}
                     </ul>
