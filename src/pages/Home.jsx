@@ -7,7 +7,15 @@ import PageWrapper from "@/components/layout/PageWrapper";
 export default function Home() {
   return (
     <PageWrapper>
-      <div className="container max-w-6xl mx-auto px-4 py-16">
+      <div 
+        className="container max-w-6xl mx-auto px-4 py-16"
+        style={{
+          backgroundColor: "#e5e5f7",
+          opacity: 0.8,
+          backgroundImage: "radial-gradient(#444cf7 0.5px, #e5e5f7 0.5px)",
+          backgroundSize: "10px 10px"
+        }}
+      >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
