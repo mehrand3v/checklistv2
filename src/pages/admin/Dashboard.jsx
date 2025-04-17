@@ -29,6 +29,8 @@ import {
   ChevronsRight,
   Eye,
   Download,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { DataTable } from "@/components/admin/DataTable";
 import { useAuth } from "@/context/AuthContext";
@@ -334,6 +336,7 @@ export default function AdminDashboard() {
   const [selectedStore, setSelectedStore] = useState("all");
   const [storeStats, setStoreStats] = useState({});
   const [uniqueStores, setUniqueStores] = useState([]);
+  const [showStoreOverview, setShowStoreOverview] = useState(false);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -813,9 +816,9 @@ export default function AdminDashboard() {
     }
     
     return (
-      <div className="flex items-center justify-between space-x-2">
+      <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0 sm:space-x-2">
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-muted-foreground">Rows per page:</span>
+          <span className="text-sm text-muted-foreground hidden sm:inline">Rows per page:</span>
           <Select
             value={itemsPerPage.toString()}
             onValueChange={(value) => setItemsPerPage(parseInt(value))}
@@ -908,84 +911,100 @@ export default function AdminDashboard() {
 
   return (
     <div className="container py-6">
-      <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent hidden sm:block">Admin Dashboard</h1>
 
-      {/* Store Filter */}
+      {/* Store Filter - Expandable */}
       <div className="mb-6">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Store Overview</CardTitle>
-            <CardDescription>Select a store to view detailed statistics</CardDescription>
+          <CardHeader 
+            className="pb-2 cursor-pointer" 
+            onClick={() => setShowStoreOverview(!showStoreOverview)}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Store Overview</CardTitle>
+                <CardDescription>Select a store to view detailed statistics</CardDescription>
+              </div>
+              <Button variant="ghost" size="icon">
+                {showStoreOverview ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4 mb-4">
-              <Select value={selectedStore} onValueChange={setSelectedStore}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select store" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Stores</SelectItem>
-                  {uniqueStores.map(store => (
-                    <SelectItem key={store} value={store}>
-                      Store {store}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {showStoreOverview && (
+            <CardContent>
+              <div className="flex items-center space-x-4 mb-4">
+                <Select value={selectedStore} onValueChange={setSelectedStore}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select store" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Stores</SelectItem>
+                    {uniqueStores.map(store => (
+                      <SelectItem key={store} value={store}>
+                        Store {store}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {selectedStore === "all" ? (
-                <>
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-primary/10 p-2 rounded-full">
-                      <FileText className="h-6 w-6 text-primary" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedStore === "all" ? (
+                  <>
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-primary/10 p-2 rounded-full">
+                        <FileText className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Total Inspections</p>
+                        <p className="text-2xl font-bold">{inspections.length}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Inspections</p>
-                      <p className="text-2xl font-bold">{inspections.length}</p>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-green-500/10 p-2 rounded-full">
-                      <Store className="h-6 w-6 text-green-500" />
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-green-500/10 p-2 rounded-full">
+                        <Store className="h-6 w-6 text-green-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Active Stores</p>
+                        <p className="text-2xl font-bold">{uniqueStores.length}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Active Stores</p>
-                      <p className="text-2xl font-bold">{uniqueStores.length}</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-primary/10 p-2 rounded-full">
+                        <FileText className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Store Inspections</p>
+                        <p className="text-2xl font-bold">{storeStats[selectedStore]?.totalInspections || 0}</p>
+                      </div>
                     </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-primary/10 p-2 rounded-full">
-                      <FileText className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Store Inspections</p>
-                      <p className="text-2xl font-bold">{storeStats[selectedStore]?.totalInspections || 0}</p>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-green-500/10 p-2 rounded-full">
-                      <Store className="h-6 w-6 text-green-500" />
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-green-500/10 p-2 rounded-full">
+                        <Store className="h-6 w-6 text-green-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Last Inspection</p>
+                        <p className="text-2xl font-bold">
+                          {storeStats[selectedStore]?.lastInspection
+                            ? new Date(storeStats[selectedStore].lastInspection).toLocaleDateString()
+                            : 'Never'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Last Inspection</p>
-                      <p className="text-2xl font-bold">
-                        {storeStats[selectedStore]?.lastInspection
-                          ? new Date(storeStats[selectedStore].lastInspection).toLocaleDateString()
-                          : 'Never'}
-                      </p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </CardContent>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          )}
         </Card>
       </div>
 
