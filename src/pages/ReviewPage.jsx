@@ -149,23 +149,43 @@ export default function ReviewPage() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="space-y-2 pt-2">
+                    <div className="space-y-4 pt-2">
                       {category.items.map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-center justify-between py-1"
+                          className="flex flex-col space-y-2 p-3 rounded-lg border"
                         >
-                          <span className="text-sm">{item.title}</span>
-                          <div className="flex items-center gap-2">
-                            {item.status === "yes" ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
-                            ) : item.status === "no" ? (
-                              <AlertCircle className="h-4 w-4 text-red-500" />
-                            ) : (
-                              <span className="text-xs text-muted-foreground">
-                                Not checked
-                              </span>
-                            )}
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{item.description}</p>
+                              {item.status === "no" && item.notes && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Notes: {item.notes}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 ml-4">
+                              {item.status === "yes" ? (
+                                <div className="flex items-center gap-1 text-green-500">
+                                  <CheckCircle2 className="h-4 w-4" />
+                                  <span className="text-sm">Yes</span>
+                                </div>
+                              ) : item.status === "no" ? (
+                                <div className="flex items-center gap-1 text-red-500">
+                                  <AlertCircle className="h-4 w-4" />
+                                  <span className="text-sm">No</span>
+                                  {item.fixed && (
+                                    <Badge variant="outline" className="ml-1">
+                                      Fixed
+                                    </Badge>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">
+                                  Not checked
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}

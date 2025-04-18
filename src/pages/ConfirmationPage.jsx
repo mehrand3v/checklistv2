@@ -30,7 +30,6 @@ export default function ConfirmationPage() {
     height: window.innerHeight,
   });
   const [showConfetti, setShowConfetti] = useState(true);
-  const [confettiCount, setConfettiCount] = useState(500);
 
   // Use the scroll to top hook
   useScrollToTop();
@@ -59,7 +58,7 @@ export default function ConfirmationPage() {
     fetchInspection();
   }, [id, navigate]);
 
-  // Update dimensions on window resize and initial load
+  // Update dimensions on window resize
   useEffect(() => {
     const handleResize = () => {
       setWindowDimensions({
@@ -81,22 +80,6 @@ export default function ConfirmationPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Get a random work message
-  const getWorkMessage = () => {
-    const messages = [
-      "Great job! Keep up the good work!",
-      "Excellent inspection! Well done!",
-      "Outstanding work! Thank you for your dedication!",
-      "Fantastic job! Your attention to detail is impressive!",
-      "Amazing work! You're making a difference!",
-      "Brilliant inspection! Keep it up!",
-      "Superb job! Your thoroughness is appreciated!",
-      "Outstanding inspection! Thank you for your hard work!",
-    ];
-
-    return messages[Math.floor(Math.random() * messages.length)];
-  };
-
   // Handle starting a new inspection
   const handleStartNew = () => {
     resetInspection();
@@ -110,29 +93,30 @@ export default function ConfirmationPage() {
     exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
   };
 
-  const iconVariants = {
-    initial: { scale: 0.8, opacity: 0 },
-    animate: { scale: 1, opacity: 1, transition: { delay: 0.2, duration: 0.3 } },
+  const cardVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    hover: { scale: 1.02, transition: { duration: 0.2 } },
   };
 
   if (loading) {
     return (
-      <div className="container py-6 max-w-md mx-auto">
-        <div className="flex flex-col items-center justify-center space-y-4 py-12">
+      <div className="fixed inset-0 flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center justify-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p>Loading inspection data...</p>
+          <p>Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="fixed inset-0 flex items-center justify-center bg-background overflow-hidden">
       {showConfetti && (
         <Confetti
           width={windowDimensions.width}
           height={windowDimensions.height}
-          numberOfPieces={confettiCount}
+          numberOfPieces={500}
           recycle={false}
           gravity={0.2}
           initialVelocityY={20}
@@ -155,13 +139,13 @@ export default function ConfirmationPage() {
         animate="animate"
         exit="exit"
         variants={pageVariants}
-        className="w-full max-w-md mx-auto px-4 sm:px-6"
+        className="w-full max-w-md mx-auto px-4"
       >
         <Card className="border-2 shadow-lg">
           <CardHeader className="text-center pb-2">
             <motion.div
               className="flex justify-center mb-2"
-              variants={iconVariants}
+              variants={cardVariants}
             >
               <div className="rounded-full bg-green-100 p-3 dark:bg-green-900">
                 <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-green-500" />
@@ -172,19 +156,11 @@ export default function ConfirmationPage() {
 
           <CardContent className="text-center space-y-3">
             <p className="text-muted-foreground text-sm sm:text-base">
-              Thank you for completing the inspection for{" "}
-              <span className="inline-flex items-center gap-1.5">
-                Store{" "}
-                <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold text-base sm:text-lg">
-                  #{inspection?.storeNumber || "N/A"}
-                </span>
-              </span>
+              Store #{inspection?.storeNumber || "N/A"}
             </p>
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <Coffee className="h-4 w-4" />
-              <p className="text-xs sm:text-sm">
-                {getWorkMessage()}
-              </p>
+              <p className="text-xs sm:text-sm">Great job! Keep up the good work!</p>
             </div>
           </CardContent>
 
