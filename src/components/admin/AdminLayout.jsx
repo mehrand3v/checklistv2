@@ -14,7 +14,12 @@ export default function AdminLayout() {
   const handleLogout = async () => {
     try {
       await logout();
-      toast.success("Logged out successfully");
+      toast.success(
+        <div className="flex flex-col gap-2">
+          <div className="font-semibold text-green-600 dark:text-green-400">Logged out successfully</div>
+          <div className="text-sm text-green-600/80 dark:text-green-400/80">See you next time!</div>
+        </div>
+      );
       navigate("/admin/login");
     } catch (error) {
       console.error("Logout error:", error);

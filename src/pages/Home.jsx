@@ -47,7 +47,7 @@ export default function Home() {
               variants={cardVariants}
             >
               <div className="rounded-full bg-primary/10 p-3">
-                <ClipboardCheck className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
+                <ClipboardCheck className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600 dark:text-blue-400" />
               </div>
             </motion.div>
             <CardTitle className="text-xl sm:text-2xl">CSR Daily Walk</CardTitle>
@@ -60,7 +60,7 @@ export default function Home() {
                 className="w-full"
                 onClick={handleStartInspection}
               >
-                <Store className="mr-2 h-5 w-5" />
+                <Store className="mr-2 h-5 w-5 text-blue-600 dark:text-blue-400" />
                 Start New Inspection
               </Button>
             </motion.div>
@@ -72,7 +72,7 @@ export default function Home() {
                 className="w-full"
                 onClick={() => navigate("/admin/login")}
               >
-                <User className="mr-2 h-5 w-5" />
+                <User className="mr-2 h-5 w-5 text-blue-600 dark:text-blue-400" />
                 Admin Login
               </Button>
             </motion.div>

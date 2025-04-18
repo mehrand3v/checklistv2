@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { toast } from "sonner";
 
 const QRCodePage = () => {
   const [url, setUrl] = useState("");
@@ -14,24 +15,41 @@ const QRCodePage = () => {
   }, []);
 
   const handleDownload = () => {
-    const svg = document.getElementById("qr-code");
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
-      const pngFile = canvas.toDataURL("image/png");
-      const downloadLink = document.createElement("a");
-      downloadLink.download = "inspection-qr-code.png";
-      downloadLink.href = pngFile;
-      downloadLink.click();
-    };
-    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+    try {
+      const svg = document.getElementById("qr-code");
+      if (!svg) {
+        toast.error("QR code element not found");
+        return;
+      }
+
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+      
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        
+        const pngFile = canvas.toDataURL("image/png");
+        const downloadLink = document.createElement("a");
+        downloadLink.download = "inspection-qr-code.png";
+        downloadLink.href = pngFile;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        
+        toast.success("QR code downloaded successfully");
+      };
+      
+      img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+    } catch (error) {
+      console.error("Error downloading QR code:", error);
+      toast.error("Failed to download QR code");
+    }
   };
 
   return (
@@ -46,7 +64,8 @@ const QRCodePage = () => {
         <CardContent className="space-y-6">
           <div className="flex justify-center p-4 bg-white rounded-lg">
             <QRCodeSVG
-              value={window.location.origin}
+              id="qr-code"
+              value={url}
               size={256}
               level="H"
               includeMargin={true}

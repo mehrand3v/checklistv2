@@ -1,5 +1,5 @@
 // src/pages/admin/LoginPage.jsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Lock, Loader2 } from "lucide-react";
@@ -12,7 +12,7 @@ import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, currentUser, loading: authLoading } = useAuth();
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -20,31 +20,15 @@ export default function LoginPage() {
   // Use the scroll to top hook
   useScrollToTop();
 
-  // Check if user is already logged in
-  useEffect(() => {
-    console.log("LoginPage - Current user:", currentUser);
-    if (currentUser) {
-      console.log("User already logged in, redirecting to dashboard");
-      navigate("/admin/dashboard");
-    }
-  }, [currentUser, navigate]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login form submitted");
     setIsLoading(true);
 
     try {
-      const success = await login(username, password);
-      console.log("Login result:", success);
-      if (success) {
-        navigate("/admin/dashboard");
-      } else {
-        toast.error("Invalid credentials");
-      }
+      await login(username, password);
+      navigate("/admin/dashboard");
     } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Login failed: " + error.message);
+      toast.error("Invalid credentials");
     } finally {
       setIsLoading(false);
     }
@@ -62,18 +46,6 @@ export default function LoginPage() {
     animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
     hover: { scale: 1.02, transition: { duration: 0.2 } },
   };
-
-  // Show loading state while checking auth
-  if (authLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p>Checking authentication...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-background p-4 overflow-hidden">
