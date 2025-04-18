@@ -106,7 +106,9 @@ export default function StoreInfoPage() {
                 <div className="relative">
                   <Input
                     id="storeNumber"
-                    type="text"
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     placeholder="Enter 7-digit store number"
                     value={storeNumber}
                     onChange={(e) => {
