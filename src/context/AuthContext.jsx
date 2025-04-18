@@ -1,13 +1,10 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
-import {
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-} from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/services/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/services/firebase";
+import { loginUser } from "@/services/auth";
 
 const AuthContext = createContext(null);
 
@@ -42,7 +39,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     try {
       setError(null);
-      await signInWithEmailAndPassword(auth, email, password);
+      await loginUser(email, password);
       return true;
     } catch (err) {
       setError(err.message);
