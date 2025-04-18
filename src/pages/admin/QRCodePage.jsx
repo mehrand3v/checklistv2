@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, ArrowLeft, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const QRCodePage = () => {
   const [url, setUrl] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Get the current origin (domain) and path
@@ -54,6 +56,18 @@ const QRCodePage = () => {
 
   return (
     <div className="container py-6">
+      <div className="flex justify-start mb-6">
+        <Button 
+          variant="default" 
+          size="sm"
+          onClick={() => navigate("/admin")}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Button>
+      </div>
+      
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">Store QR Code</CardTitle>
