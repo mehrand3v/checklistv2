@@ -15,6 +15,7 @@ import {
 import { useInspection } from "@/context/InspectionContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/services/firebase";
+import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 // npm install react-confetti
 
@@ -30,6 +31,9 @@ export default function ConfirmationPage() {
   });
   const [showConfetti, setShowConfetti] = useState(true);
   const [confettiCount, setConfettiCount] = useState(500);
+
+  // Use the scroll to top hook
+  useScrollToTop();
 
   // Fetch inspection data
   useEffect(() => {
@@ -55,7 +59,7 @@ export default function ConfirmationPage() {
     fetchInspection();
   }, [id, navigate]);
 
-  // Update dimensions on window resize
+  // Update dimensions on window resize and initial load
   useEffect(() => {
     const handleResize = () => {
       setWindowDimensions({
@@ -68,67 +72,47 @@ export default function ConfirmationPage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Gradually increase confetti count for a more dramatic effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setConfettiCount(prev => Math.min(prev + 50, 1000));
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Stop confetti after 10 seconds
+  // Stop confetti after 5 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowConfetti(false);
-    }, 10000);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, []);
 
+  // Get a random work message
+  const getWorkMessage = () => {
+    const messages = [
+      "Great job! Keep up the good work!",
+      "Excellent inspection! Well done!",
+      "Outstanding work! Thank you for your dedication!",
+      "Fantastic job! Your attention to detail is impressive!",
+      "Amazing work! You're making a difference!",
+      "Brilliant inspection! Keep it up!",
+      "Superb job! Your thoroughness is appreciated!",
+      "Outstanding inspection! Thank you for your hard work!",
+    ];
+
+    return messages[Math.floor(Math.random() * messages.length)];
+  };
+
+  // Handle starting a new inspection
   const handleStartNew = () => {
     resetInspection();
     navigate("/");
   };
 
-  // Get work-focused message based on time of day
-  const getWorkMessage = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Have a productive day at work!";
-    if (hour < 17) return "Keep up the great work today!";
-    return "Great job finishing your tasks!";
-  };
-
   // Animation variants
   const pageVariants = {
-    initial: { opacity: 0, scale: 0.9 },
-    animate: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.5,
-        type: "spring",
-        stiffness: 100,
-      },
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.9,
-      transition: { duration: 0.3 },
-    },
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
   };
 
   const iconVariants = {
-    initial: { scale: 0 },
-    animate: {
-      scale: 1,
-      transition: {
-        delay: 0.3,
-        type: "spring",
-        stiffness: 200,
-        damping: 10,
-      },
-    },
+    initial: { scale: 0.8, opacity: 0 },
+    animate: { scale: 1, opacity: 1, transition: { delay: 0.2, duration: 0.3 } },
   };
 
   if (loading) {
@@ -150,9 +134,9 @@ export default function ConfirmationPage() {
           height={windowDimensions.height}
           numberOfPieces={confettiCount}
           recycle={false}
-          gravity={0.15}
-          initialVelocityY={25}
-          initialVelocityX={15}
+          gravity={0.2}
+          initialVelocityY={20}
+          initialVelocityX={10}
           colors={["#0ea5e9", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"]}
           style={{
             position: 'fixed',
@@ -161,6 +145,7 @@ export default function ConfirmationPage() {
             width: '100%',
             height: '100%',
             zIndex: 50,
+            pointerEvents: 'none'
           }}
         />
       )}
@@ -175,17 +160,17 @@ export default function ConfirmationPage() {
         <Card className="border-2 shadow-lg">
           <CardHeader className="text-center pb-2">
             <motion.div
-              className="flex justify-center mb-4"
+              className="flex justify-center mb-2"
               variants={iconVariants}
             >
-              <div className="rounded-full bg-green-100 p-4 dark:bg-green-900">
-                <CheckCircle className="h-12 w-12 sm:h-16 sm:w-16 text-green-500" />
+              <div className="rounded-full bg-green-100 p-3 dark:bg-green-900">
+                <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 text-green-500" />
               </div>
             </motion.div>
             <CardTitle className="text-xl sm:text-2xl">Inspection Complete!</CardTitle>
           </CardHeader>
 
-          <CardContent className="text-center space-y-4">
+          <CardContent className="text-center space-y-3">
             <p className="text-muted-foreground text-sm sm:text-base">
               Thank you for completing the inspection for{" "}
               <span className="inline-flex items-center gap-1.5">
@@ -203,11 +188,11 @@ export default function ConfirmationPage() {
             </div>
           </CardContent>
 
-          <CardFooter className="flex justify-center pb-6">
+          <CardFooter className="flex justify-center pb-4">
             <Button 
               size="lg" 
               onClick={handleStartNew} 
-              className="mt-4 w-full sm:w-auto"
+              className="w-full sm:w-auto"
             >
               <Home className="mr-2 h-5 w-5" />
               Return to Home

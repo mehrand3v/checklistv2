@@ -13,9 +13,9 @@ export default function PageWrapper({ children, className = "" }) {
       initial="initial"
       animate="animate"
       exit="exit"
-      className={`min-h-[calc(100vh-8rem)] w-full bg-gray-50 dark:bg-gray-900 ${className}`}
+      className={`min-h-[calc(100vh-4rem)] w-full bg-gray-50 dark:bg-gray-900 ${className}`}
     >
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4">
         {children}
       </div>
     </motion.div>

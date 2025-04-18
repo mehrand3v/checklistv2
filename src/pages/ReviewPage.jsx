@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { useInspection } from "@/context/InspectionContext";
 import { submitInspection } from "@/services/api";
 import { toast } from "sonner";
+import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 export default function ReviewPage() {
   const navigate = useNavigate();
@@ -34,6 +35,9 @@ export default function ReviewPage() {
     loading,
   } = useInspection();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Use the scroll to top hook
+  useScrollToTop();
 
   // Get completion status
   const completionStatus = getCompletionStatus();
@@ -129,63 +133,49 @@ export default function ReviewPage() {
           </div>
 
           {/* Category Summaries */}
-          <div className="space-y-2">
+          <div className="space-y-4">
             <h3 className="font-semibold text-lg">Category Summaries</h3>
-            <Accordion type="single" collapsible>
+            <Accordion type="single" collapsible className="w-full">
               {inspectionData.map((category) => (
                 <AccordionItem key={category.id} value={category.id}>
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center justify-between w-full pr-4">
+                  <AccordionTrigger className="text-base">
+                    <div className="flex items-center gap-2">
                       <span>{category.title}</span>
-                      {categoryHasIssues(category) ? (
+                      {categoryHasIssues(category) && (
                         <Badge variant="destructive" className="ml-2">
-                          {countIssuesInCategory(category)} Issues
+                          {countIssuesInCategory(category)} issues
                         </Badge>
-                      ) : (
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
                       )}
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <ul className="space-y-4">
+                    <div className="space-y-2 pt-2">
                       {category.items.map((item) => (
-                        <li key={item.id} className="space-y-2">
-                          <div className="flex items-start">
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between py-1"
+                        >
+                          <span className="text-sm">{item.title}</span>
+                          <div className="flex items-center gap-2">
                             {item.status === "yes" ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
                             ) : item.status === "no" ? (
-                              <AlertCircle className="h-4 w-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+                              <AlertCircle className="h-4 w-4 text-red-500" />
                             ) : (
-                              <div className="h-4 w-4 rounded-full bg-gray-200 mr-2 mt-0.5 flex-shrink-0" />
+                              <span className="text-xs text-muted-foreground">
+                                Not checked
+                              </span>
                             )}
-                            <div className="flex-1">
-                              <span>{item.description}</span>
-                              {item.status === "no" && (
-                                <div className="mt-2 space-y-2">
-                                  {item.fixed && (
-                                    <Badge variant="outline" className="text-green-500">
-                                      Fixed
-                                    </Badge>
-                                  )}
-                                  {item.notes && (
-                                    <p className="text-sm text-muted-foreground">
-                                      Notes: {item.notes}
-                                    </p>
-                                  )}
-                                </div>
-                              )}
-                            </div>
                           </div>
-                        </li>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex justify-between pt-4">
             <Button variant="outline" onClick={() => navigate(-1)}>
               <ArrowLeft className="mr-2 h-4 w-4" />

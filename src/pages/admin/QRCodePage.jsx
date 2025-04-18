@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 
 const QRCodePage = () => {
   const [url, setUrl] = useState("");
@@ -34,33 +35,31 @@ const QRCodePage = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <Card>
+    <div className="container py-6">
+      <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle>Inspection QR Code</CardTitle>
+          <CardTitle className="text-2xl">Store QR Code</CardTitle>
           <CardDescription>
-            Scan this QR code to start a new inspection
+            Scan this QR code to access the inspection form for this store
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-center p-4 bg-white rounded-lg">
-              <QRCodeSVG
-                id="qr-code"
-                value={url}
-                size={256}
-                level="H"
-                includeMargin={true}
-              />
-            </div>
-            <div className="flex justify-center">
-              <Button onClick={handleDownload}>
-                Download QR Code
-              </Button>
-            </div>
-            <div className="text-center text-sm text-muted-foreground">
-              URL: {url}
-            </div>
+        <CardContent className="space-y-6">
+          <div className="flex justify-center p-4 bg-white rounded-lg">
+            <QRCodeSVG
+              value={window.location.origin}
+              size={256}
+              level="H"
+              includeMargin={true}
+            />
+          </div>
+          <div className="flex justify-center">
+            <Button
+              onClick={handleDownload}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Download QR Code
+            </Button>
           </div>
         </CardContent>
       </Card>

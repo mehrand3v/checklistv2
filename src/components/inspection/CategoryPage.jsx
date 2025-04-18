@@ -44,6 +44,7 @@ import InspectionItem from "./InspectionItem";
 import { useInspection } from "@/context/InspectionContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 // Dynamic icon mapping function
 const IconComponent = ({ iconName, className }) => {
@@ -71,6 +72,9 @@ export default function CategoryPage() {
   const [showSummary, setShowSummary] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
+
+  // Use the scroll to top hook
+  useScrollToTop();
 
   // Check if device is mobile
   useEffect(() => {
@@ -129,7 +133,6 @@ export default function CategoryPage() {
     if (categoryIndex > 0) {
       const prevCategory = inspectionData[categoryIndex - 1];
       navigate(`/inspection/${prevCategory.id}`);
-      window.scrollTo(0, 0);
     } else {
       navigate("/");
     }
@@ -153,7 +156,6 @@ export default function CategoryPage() {
     if (categoryIndex < inspectionData.length - 1) {
       const nextCategory = inspectionData[categoryIndex + 1];
       navigate(`/inspection/${nextCategory.id}`);
-      window.scrollTo(0, 0);
     } else {
       navigate("/review");
     }
