@@ -10,7 +10,7 @@ const QRCodePage = () => {
 
   useEffect(() => {
     // Get the current origin (domain) and path
-    const currentUrl = window.location.origin + "/inspection";
+    const currentUrl = window.location.origin;
     setUrl(currentUrl);
   }, []);
 
