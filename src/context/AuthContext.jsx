@@ -15,44 +15,68 @@ export function AuthProvider({ children }) {
   const [adminRole, setAdminRole] = useState(null);
 
   useEffect(() => {
+    console.log("Setting up auth state listener...");
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("Auth state changed:", user ? "User logged in" : "No user");
       if (user) {
         // Fetch admin role from Firestore
         try {
+          console.log("Fetching admin role for user:", user.uid);
           const adminDoc = await getDoc(doc(db, "admins", user.uid));
           if (adminDoc.exists()) {
-            setAdminRole(adminDoc.data().role);
+            const role = adminDoc.data().role;
+            console.log("Admin role found:", role);
+            setAdminRole(role);
+          } else {
+            console.log("No admin role found for user");
+            setAdminRole(null);
           }
         } catch (err) {
           console.error("Error fetching admin role:", err);
+          setAdminRole(null);
         }
       } else {
+        console.log("No user, clearing admin role");
         setAdminRole(null);
       }
       setCurrentUser(user);
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      console.log("Cleaning up auth state listener");
+      unsubscribe();
+    };
   }, []);
 
   const login = async (email, password) => {
     try {
+      console.log("Login attempt started");
       setError(null);
-      await loginUser(email, password);
+      setLoading(true);
+      const user = await loginUser(email, password);
+      console.log("Login successful, user:", user);
+      setCurrentUser(user);
       return true;
     } catch (err) {
+      console.error("Login error:", err);
       setError(err.message);
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
     try {
+      console.log("Logout attempt started");
       await signOut(auth);
       setAdminRole(null);
+      setCurrentUser(null);
+      console.log("Logout successful");
       return true;
     } catch (err) {
+      console.error("Logout error:", err);
       setError(err.message);
       return false;
     }

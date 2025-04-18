@@ -5,7 +5,7 @@ import {
   setPersistence,
   signOut,
   signInWithEmailAndPassword,
-  browserSessionPersistence,
+  browserLocalPersistence,
   onAuthStateChanged,
   updateProfile,
 } from "firebase/auth";
@@ -16,11 +16,12 @@ export { auth };
 
 export const loginUser = async (email, password) => {
   try {
-    // Set persistence before attempting to sign in
-    await setPersistence(auth, browserSessionPersistence);
+    console.log("Setting persistence to LOCAL...");
+    await setPersistence(auth, browserLocalPersistence);
     
-    // Attempt to sign in
+    console.log("Attempting to sign in...");
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    console.log("Sign in successful:", userCredential.user);
     return userCredential.user;
   } catch (error) {
     console.error("Error logging in:", error.message);
