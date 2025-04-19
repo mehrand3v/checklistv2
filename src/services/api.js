@@ -572,6 +572,7 @@ export const updateInspection = async (inspectionId, inspectionData) => {
       inspectedBy: inspectionData.inspectedBy.trim(),
       clientDate: inspectionData.clientDate,
       lastUpdated: serverTimestamp(),
+      status: 'submitted', // Ensure status remains 'submitted'
     };
 
     await updateDoc(docRef, updatePayload);
