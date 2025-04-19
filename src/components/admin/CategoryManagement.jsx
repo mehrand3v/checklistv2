@@ -3,7 +3,23 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, Edit, Save, HelpCircle } from "lucide-react";
+import { Trash2, Plus, Edit, Save, HelpCircle, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import {
   Card,
   CardContent,
@@ -40,6 +56,8 @@ import {
   saveItem,
   deleteItem,
   getCategoriesAndItems,
+  updateCategoryOrder,
+  updateItemOrder,
 } from "@/services/api";
 import DataMigrationButton from "./DataMigrationButton";
 
@@ -54,12 +72,216 @@ const iconOptions = [
   { value: "Building", label: "Building" },
 ];
 
+// Sortable Item Component
+function SortableItem({ item, onEdit, onDelete }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transition,
+    zIndex: isDragging ? 1 : undefined,
+    opacity: isDragging ? 0.5 : undefined,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="border-b last:border-b-0">
+      <div className="grid grid-cols-2 py-3 px-4 hover:bg-accent/50 group">
+        <div className="flex items-center break-words pr-2">
+          <button
+            className="touch-none p-2 opacity-50 hover:opacity-100 cursor-grab active:cursor-grabbing"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+          {item.description}
+        </div>
+        <div className="flex justify-end space-x-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEdit(item)}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(item.id)}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Sortable Category Item Component
+function SortableCategory({ category, onEdit, onDelete, children, sensors, setCategories, handleItemAction, handleDeleteItem }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category.id });
+
+  const style = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transition,
+    zIndex: isDragging ? 1 : undefined,
+    opacity: isDragging ? 0.5 : undefined,
+  };
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      const oldIndex = category.items.findIndex((item) => item.id === active.id);
+      const newIndex = category.items.findIndex((item) => item.id === over.id);
+      
+      const newOrder = arrayMove(category.items, oldIndex, newIndex);
+      
+      // Update the order in the database
+      await updateItemOrder(category.id, newOrder.map((item, index) => ({
+        id: item.id,
+        order: index
+      })));
+      
+      // Update local state
+      setCategories((prev) =>
+        prev.map((cat) =>
+          cat.id === category.id ? { ...cat, items: newOrder } : cat
+        )
+      );
+    }
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative">
+      <AccordionItem value={category.id} className="border rounded-lg mb-4">
+        <div className="flex items-center justify-between px-4 py-3 bg-card hover:bg-accent/50 group">
+          <div className="flex items-center flex-1">
+            <button
+              className="touch-none p-2 opacity-50 hover:opacity-100 cursor-grab active:cursor-grabbing"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="h-5 w-5" />
+            </button>
+            <AccordionTrigger className="flex-1 hover:no-underline">
+              <div className="flex items-center">
+                <span className="text-lg font-medium">
+                  {category.title}
+                </span>
+                <span className="ml-2 text-sm text-muted-foreground">
+                  ({category.items?.length || 0} items)
+                </span>
+              </div>
+            </AccordionTrigger>
+          </div>
+
+          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(category)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(category.id)}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        </div>
+        <AccordionContent className="px-4 pt-2 pb-4">
+          <div className="flex justify-between mb-4">
+            <h3 className="text-md font-medium">
+              Items in this category
+            </h3>
+            <Button size="sm" onClick={() => handleItemAction(category)}>
+              <Plus className="mr-2 h-3 w-3" />
+              Add Item
+            </Button>
+          </div>
+
+          {!category.items || category.items.length === 0 ? (
+            <div className="text-center p-4 border border-dashed rounded-lg">
+              <p className="text-muted-foreground">
+                No items in this category yet.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => handleItemAction(category)}
+              >
+                <Plus className="mr-2 h-3 w-3" />
+                Add First Item
+              </Button>
+            </div>
+          ) : (
+            <div className="border rounded-md">
+              <div className="grid grid-cols-2 py-2 px-4 font-medium bg-muted">
+                <div>Description</div>
+                <div className="text-right">Actions</div>
+              </div>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={(event) => handleDragEnd(event)}
+              >
+                <SortableContext
+                  items={category.items.map(item => item.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="divide-y">
+                    {category.items?.map((item) => (
+                      <SortableItem
+                        key={item.id}
+                        item={item}
+                        onEdit={() => handleItemAction(category, item)}
+                        onDelete={() => handleDeleteItem(category.id, item.id)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </div>
+          )}
+        </AccordionContent>
+      </AccordionItem>
+    </div>
+  );
+}
+
 export default function CategoryManagement() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
+
+  // DnD sensors configuration
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Category form state
   const [categoryFormData, setCategoryFormData] = useState({
@@ -99,6 +321,28 @@ export default function CategoryManagement() {
   // Handle migration completion
   const handleMigrationComplete = () => {
     loadData(); // Reload data after migration
+  };
+
+  // Handle drag end event
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      setCategories((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        
+        const newOrder = arrayMove(items, oldIndex, newIndex);
+        
+        // Update the order in the database
+        updateCategoryOrder(newOrder.map((cat, index) => ({
+          id: cat.id,
+          order: index
+        })));
+        
+        return newOrder;
+      });
+    }
   };
 
   // Open category modal for add/edit
@@ -348,108 +592,95 @@ export default function CategoryManagement() {
       ) : null}
 
       {hasCategories && (
-        <Accordion type="single" collapsible className="w-full">
-          {categories.map((category) => (
-            <AccordionItem key={category.id} value={category.id}>
-              {/* Fixed: Using a custom header with separate buttons outside the trigger */}
-              <div className="flex items-center justify-between px-4 py-3 bg-card rounded-lg hover:bg-accent/50 group">
-                <AccordionTrigger className="flex-1">
-                  <div className="flex items-center">
-                    <span className="text-lg font-medium">
-                      {category.title}
-                    </span>
-                    <span className="ml-2 text-sm text-muted-foreground">
-                      ({category.items?.length || 0} items)
-                    </span>
-                  </div>
-                </AccordionTrigger>
-
-                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCategoryAction(category)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteCategory(category.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-
-              <AccordionContent className="px-4 pt-2 pb-4">
-                <div className="flex justify-between mb-4">
-                  <h3 className="text-md font-medium">
-                    Items in this category
-                  </h3>
-                  <Button size="sm" onClick={() => handleItemAction(category)}>
-                    <Plus className="mr-2 h-3 w-3" />
-                    Add Item
-                  </Button>
-                </div>
-
-                {!category.items || category.items.length === 0 ? (
-                  <div className="text-center p-4 border border-dashed rounded-lg">
-                    <p className="text-muted-foreground">
-                      No items in this category yet.
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => handleItemAction(category)}
-                    >
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={categories.map(cat => cat.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <Accordion type="single" collapsible className="w-full">
+              {categories.map((category) => (
+                <SortableCategory
+                  key={category.id}
+                  category={category}
+                  onEdit={handleCategoryAction}
+                  onDelete={handleDeleteCategory}
+                  sensors={sensors}
+                  setCategories={setCategories}
+                  handleItemAction={handleItemAction}
+                  handleDeleteItem={handleDeleteItem}
+                >
+                  <div className="flex justify-between mb-4">
+                    <h3 className="text-md font-medium">
+                      Items in this category
+                    </h3>
+                    <Button size="sm" onClick={() => handleItemAction(category)}>
                       <Plus className="mr-2 h-3 w-3" />
-                      Add First Item
+                      Add Item
                     </Button>
                   </div>
-                ) : (
-                  <div className="border rounded-md">
-                    <div className="grid grid-cols-2 py-2 px-4 font-medium bg-muted">
-                      <div>Description</div>
-                      <div className="text-right">Actions</div>
+
+                  {!category.items || category.items.length === 0 ? (
+                    <div className="text-center p-4 border border-dashed rounded-lg">
+                      <p className="text-muted-foreground">
+                        No items in this category yet.
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => handleItemAction(category)}
+                      >
+                        <Plus className="mr-2 h-3 w-3" />
+                        Add First Item
+                      </Button>
                     </div>
-                    <div className="divide-y">
-                      {category.items?.map((item) => (
-                        <div
-                          key={item.id}
-                          className="grid grid-cols-2 py-3 px-4"
-                        >
-                          <div className="break-words pr-2">
-                            {item.description}
+                  ) : (
+                    <div className="border rounded-md">
+                      <div className="grid grid-cols-2 py-2 px-4 font-medium bg-muted">
+                        <div>Description</div>
+                        <div className="text-right">Actions</div>
+                      </div>
+                      <div className="divide-y">
+                        {category.items?.map((item) => (
+                          <div
+                            key={item.id}
+                            className="grid grid-cols-2 py-3 px-4"
+                          >
+                            <div className="break-words pr-2">
+                              {item.description}
+                            </div>
+                            <div className="flex justify-end space-x-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleItemAction(category, item)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handleDeleteItem(category.id, item.id)
+                                }
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
                           </div>
-                          <div className="flex justify-end space-x-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleItemAction(category, item)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                handleDeleteItem(category.id, item.id)
-                              }
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+                  )}
+                </SortableCategory>
+              ))}
+            </Accordion>
+          </SortableContext>
+        </DndContext>
       )}
 
       {/* Category Modal */}

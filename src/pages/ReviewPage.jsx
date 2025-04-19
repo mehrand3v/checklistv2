@@ -43,8 +43,7 @@ export default function ReviewPage() {
   const completionStatus = getCompletionStatus();
 
   // Check if we can submit (all items must be completed)
-  const canSubmit =
-    completionStatus.completedItems === completionStatus.totalItems;
+  const canSubmit = completionStatus.isComplete;
 
   // Handle the submission
   const handleSubmit = async () => {

@@ -73,52 +73,248 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
+import confetti from 'canvas-confetti';
 
-// Add this new component for viewing inspection details
-function InspectionDetailDialog({ inspection, open, onOpenChange }) {
-  if (!inspection) return null;
-
+// Add this new component for the no issues celebration dialog
+function NoIssuesDialog({ inspection, open, onOpenChange }) {
+  const [showConfetti, setShowConfetti] = useState(false);
+  
+  // Trigger confetti when dialog opens
+  useEffect(() => {
+    if (open) {
+      setShowConfetti(true);
+      
+      // Trigger confetti animation with more intensity
+      const duration = 5 * 1000; // Longer duration
+      const animationEnd = Date.now() + duration;
+      const defaults = { 
+        startVelocity: 30, 
+        spread: 360, 
+        ticks: 60, 
+        zIndex: 99999, // Much higher z-index to ensure it appears on top of everything
+        disableForReducedMotion: false // Ensure it works even with reduced motion settings
+      };
+      
+      function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+      
+      const interval = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+        
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+        
+        const particleCount = 100 * (timeLeft / duration); // More particles
+        
+        // Confetti from left side
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+          colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+        });
+        
+        // Confetti from right side
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+          colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+        });
+        
+        // Add confetti from bottom for more coverage
+        confetti({
+          ...defaults,
+          particleCount: particleCount / 2,
+          origin: { x: randomInRange(0.3, 0.7), y: 0.9 },
+          angle: 60,
+          spread: 80,
+          colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+        });
+      }, 150); // More frequent bursts
+      
+      // Clean up interval on unmount
+      return () => clearInterval(interval);
+    }
+  }, [open]);
+  
+  // Random positive messages
+  const positiveMessages = [
+    "Perfect inspection! Keep up the great work!",
+    "Outstanding job! Everything looks perfect!",
+    "No issues found! This is exactly how it should be!",
+    "Excellent work! A flawless inspection!",
+    "100% compliance! You're setting the standard!",
+    "Incredible attention to detail! No issues at all!",
+    "This is what excellence looks like! Perfect score!",
+    "Absolutely perfect! Nothing to improve here!"
+  ];
+  
+  const randomMessage = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+        <DialogHeader>
+          <DialogTitle className="text-center text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+            Perfect Inspection!
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col items-center justify-center py-6 space-y-4">
+          <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <p className="text-center text-lg font-medium">{randomMessage}</p>
+          <div className="grid grid-cols-1 gap-3 w-full mt-4">
+            <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
+              <h3 className="font-semibold text-blue-700 dark:text-blue-300">Store Number</h3>
+              <p className="text-blue-900 dark:text-blue-100">{inspection?.storeNumber || "N/A"}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
+              <h3 className="font-semibold text-purple-700 dark:text-purple-300">Inspector</h3>
+              <p className="text-purple-900 dark:text-purple-100">{inspection?.inspectedBy || "N/A"}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+              <h3 className="font-semibold text-green-700 dark:text-green-300">Inspection Date</h3>
+              <p className="text-green-900 dark:text-green-100">{inspection?.inspectionDate ? new Date(inspection.inspectionDate).toLocaleDateString() : "N/A"}</p>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={() => onOpenChange(false)} className="w-full bg-green-600 hover:bg-green-700 text-white">
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Update the component definition to accept issueFilter prop
+function InspectionDetailDialog({ inspection, open, onOpenChange, issueFilter }) {
+  if (!inspection) return null;
+
+  // Filter categories based on issueFilter
+  const filteredCategories = inspection.categories?.map(category => ({
+    ...category,
+    items: category.items?.filter(item => {
+      if (issueFilter === 'fixed') {
+        return item.status === 'no' && item.fixed;
+      } else if (issueFilter === 'open') {
+        return item.status === 'no' && !item.fixed;
+      }
+      return true;
+    })
+  })).filter(category => category.items.length > 0);
+
+  const handleClose = () => {
+    onOpenChange(false);
+  };
+
+  // Format submission date and time
+  const formatSubmissionDateTime = () => {
+    if (!inspection.submittedAt) return null;
+    
+    const submittedDate = new Date(inspection.submittedAt);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Format the submission date
+    let dateDisplay;
+    if (submittedDate.toDateString() === today.toDateString()) {
+      dateDisplay = "Today";
+    } else if (submittedDate.toDateString() === yesterday.toDateString()) {
+      dateDisplay = "Yesterday";
+    } else {
+      dateDisplay = submittedDate.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
+    }
+    
+    // Add time
+    const timeDisplay = submittedDate.toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    
+    return `${dateDisplay} at ${timeDisplay}`;
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Inspection Details</DialogTitle>
+          <DialogTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+            Inspection Details
+            {issueFilter && (
+              <span className="ml-2 text-sm font-normal text-muted-foreground">
+                ({issueFilter === 'fixed' ? 'Fixed' : 'Not Fixed'} Issues)
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold">Store Number</h3>
-              <p>{inspection.storeNumber}</p>
+            <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
+              <h3 className="font-semibold text-blue-700 dark:text-blue-300">Store Number</h3>
+              <p className="text-blue-900 dark:text-blue-100">{inspection.storeNumber}</p>
             </div>
-            <div>
-              <h3 className="font-semibold">Inspector</h3>
-              <p>{inspection.inspectedBy}</p>
+            <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
+              <h3 className="font-semibold text-purple-700 dark:text-purple-300">Inspector</h3>
+              <p className="text-purple-900 dark:text-purple-100">{inspection.inspectedBy}</p>
             </div>
-            <div>
-              <h3 className="font-semibold">Inspection Date</h3>
-              <p>{new Date(inspection.inspectionDate).toLocaleDateString()}</p>
+            <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+              <h3 className="font-semibold text-green-700 dark:text-green-300">Inspection Date</h3>
+              <p className="text-green-900 dark:text-green-100">{new Date(inspection.inspectionDate).toLocaleDateString()}</p>
             </div>
-            <div>
-              <h3 className="font-semibold">Status</h3>
-              <Badge variant={inspection.fixed ? "success" : "destructive"}>
-                {inspection.fixed ? "Fixed" : "Pending"}
-              </Badge>
+            <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
+              <h3 className="font-semibold text-amber-700 dark:text-amber-300">Status</h3>
+              <div className="space-y-1">
+                <Badge variant={inspection.fixed ? "success" : "destructive"} className="text-sm">
+                  {inspection.fixed ? "Fixed" : "Submitted"}
+                </Badge>
+                {inspection.submittedAt && (
+                  <div className="flex items-center mt-1">
+                    <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-900/20 dark:text-indigo-400 dark:ring-indigo-400/30">
+                      {formatSubmissionDateTime()}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Categories</h3>
-            {inspection.categories?.map((category) => (
-              <div key={category.id} className="border rounded-lg p-4">
-                <h4 className="font-semibold mb-2">{category.title}</h4>
+            <h3 className="font-semibold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Categories</h3>
+            {filteredCategories?.map((category) => (
+              <div key={category.id} className="border rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm">
+                <h4 className="font-semibold mb-2 text-blue-700 dark:text-blue-300">{category.title}</h4>
                 <div className="space-y-2">
                   {category.items?.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-start justify-between p-2 bg-muted/50 rounded"
+                      className={`flex items-start justify-between p-3 rounded ${
+                        item.status === "yes" 
+                          ? "bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800" 
+                          : item.fixed 
+                            ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800" 
+                            : "bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800"
+                      }`}
                     >
                       <div className="flex-1">
-                        <p className="font-medium">{item.description}</p>
+                        <p className={`font-medium ${
+                          item.status === "yes" 
+                            ? "text-green-900 dark:text-green-100" 
+                            : item.fixed 
+                              ? "text-blue-900 dark:text-blue-100" 
+                              : "text-red-900 dark:text-red-100"
+                        }`}>{item.description}</p>
                         {item.notes && (
                           <p className="text-sm text-muted-foreground mt-1">
                             Notes: {item.notes}
@@ -134,6 +330,7 @@ function InspectionDetailDialog({ inspection, open, onOpenChange }) {
                               ? "default"
                               : "destructive"
                           }
+                          className="text-sm"
                         >
                           {item.status === "yes"
                             ? "Pass"
@@ -150,7 +347,7 @@ function InspectionDetailDialog({ inspection, open, onOpenChange }) {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={handleClose} className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/30">
             Close
           </Button>
         </DialogFooter>
@@ -238,7 +435,7 @@ const generatePDF = async (inspections) => {
       
       // Date info
       pdf.text(`Date: ${inspection.inspectionDate ? new Date(inspection.inspectionDate).toLocaleDateString() : 'N/A'}`, 110, yOffset + 7);
-      pdf.text(`Status: ${inspection.submittedAt ? 'Submitted' : 'Pending'}`, 110, yOffset + 15);
+      pdf.text(`Status: Submitted`, 110, yOffset + 15);
       
       yOffset += 35;
       
@@ -337,6 +534,7 @@ export default function AdminDashboard() {
   const [storeStats, setStoreStats] = useState({});
   const [uniqueStores, setUniqueStores] = useState([]);
   const [showStoreOverview, setShowStoreOverview] = useState(false);
+  const [issueFilter, setIssueFilter] = useState(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -355,6 +553,9 @@ export default function AdminDashboard() {
   // Add state for inspection detail dialog
   const [selectedInspection, setSelectedInspection] = useState(null);
   const [showInspectionDetail, setShowInspectionDetail] = useState(false);
+  
+  // Add state for no issues dialog
+  const [showNoIssuesDialog, setShowNoIssuesDialog] = useState(false);
 
   // Fetch data
   useEffect(() => {
@@ -486,12 +687,20 @@ export default function AdminDashboard() {
     {
       header: "Store",
       accessorKey: "storeNumber",
-      cell: ({ row }) => <div>{row.original?.storeNumber || "N/A"}</div>,
+      cell: ({ row }) => (
+        <div className="font-medium text-blue-700 dark:text-blue-300">
+          {row.original?.storeNumber || "N/A"}
+        </div>
+      ),
     },
     {
       header: "Inspector",
       accessorKey: "inspectedBy",
-      cell: ({ row }) => <div>{row.original?.inspectedBy || "N/A"}</div>,
+      cell: ({ row }) => (
+        <div className="font-medium text-purple-700 dark:text-purple-300">
+          {row.original?.inspectedBy || "N/A"}
+        </div>
+      ),
     },
     {
       header: "Inspection Date",
@@ -512,22 +721,34 @@ export default function AdminDashboard() {
           day: "numeric",
         });
         
-        // Add relative time indicator
+        // Add relative time indicator with special styling
+        let timeIndicator = "";
+        let timeIndicatorClass = "";
+        
         if (inspectionDate.toDateString() === today.toDateString()) {
-          dateDisplay += " (Today)";
+          timeIndicator = " (Today)";
+          timeIndicatorClass = "text-amber-600 dark:text-amber-400 font-semibold";
         } else if (inspectionDate.toDateString() === yesterday.toDateString()) {
-          dateDisplay += " (Yesterday)";
+          timeIndicator = " (Yesterday)";
+          timeIndicatorClass = "text-indigo-600 dark:text-indigo-400 font-semibold";
         } else {
           const daysDiff = Math.floor((today - inspectionDate) / (1000 * 60 * 60 * 24));
           if (daysDiff < 7) {
-            dateDisplay += ` (${daysDiff} days ago)`;
+            timeIndicator = ` (${daysDiff} days ago)`;
+            timeIndicatorClass = "text-teal-600 dark:text-teal-400";
           } else if (daysDiff < 30) {
             const weeks = Math.floor(daysDiff / 7);
-            dateDisplay += ` (${weeks} week${weeks > 1 ? 's' : ''} ago)`;
+            timeIndicator = ` (${weeks} week${weeks > 1 ? 's' : ''} ago)`;
+            timeIndicatorClass = "text-teal-600 dark:text-teal-400";
           }
         }
         
-        return <div>{dateDisplay}</div>;
+        return (
+          <div className="font-medium text-green-700 dark:text-green-300">
+            {dateDisplay}
+            {timeIndicator && <span className={timeIndicatorClass}>{timeIndicator}</span>}
+          </div>
+        );
       },
     },
     {
@@ -578,25 +799,44 @@ export default function AdminDashboard() {
               }, 0)
             : 0;
 
-        return (
-          <div className="space-y-1">
-            <Badge
-              variant={
-                issueCount === 0
-                  ? "outline"
-                  : issueCount === fixedIssueCount && issueCount > 0
-                  ? "success"
-                  : "destructive"
-              }
+        // If there are no issues, show a simple badge
+        if (issueCount === 0) {
+          return (
+            <div 
+              className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200"
+              onClick={() => {
+                setSelectedInspection(row.original);
+                setShowNoIssuesDialog(true);
+              }}
             >
-              {issueCount} {issueCount === 1 ? "Issue" : "Issues"}
-            </Badge>
+              <span className="text-xs font-medium">No issues</span>
+            </div>
+          );
+        }
 
-            {issueCount > 0 && fixedIssueCount > 0 && (
-              <div className="text-xs text-muted-foreground">
-                {fixedIssueCount} fixed / {issueCount - fixedIssueCount} open
-              </div>
-            )}
+        // Otherwise show fixed and not fixed counts
+        return (
+          <div className="flex flex-wrap items-center gap-1">
+            <button
+              onClick={() => {
+                setSelectedInspection(row.original);
+                setIssueFilter('fixed');
+                setShowInspectionDetail(true);
+              }}
+              className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30 transition-all duration-200 text-xs font-medium"
+            >
+              {fixedIssueCount} fixed
+            </button>
+            <button
+              onClick={() => {
+                setSelectedInspection(row.original);
+                setIssueFilter('open');
+                setShowInspectionDetail(true);
+              }}
+              className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/30 transition-all duration-200 text-xs font-medium"
+            >
+              {issueCount - fixedIssueCount} not fixed
+            </button>
           </div>
         );
       },
@@ -620,12 +860,16 @@ export default function AdminDashboard() {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
         
-        // Format the submission date
+        // Format the submission date with special styling
         let dateDisplay;
+        let dateClass = "text-indigo-700 dark:text-indigo-300";
+        
         if (submittedDate.toDateString() === today.toDateString()) {
           dateDisplay = "Today";
+          dateClass = "text-amber-600 dark:text-amber-400 font-semibold";
         } else if (submittedDate.toDateString() === yesterday.toDateString()) {
           dateDisplay = "Yesterday";
+          dateClass = "text-indigo-600 dark:text-indigo-400 font-semibold";
         } else {
           dateDisplay = submittedDate.toLocaleDateString(undefined, {
             month: "short",
@@ -644,7 +888,7 @@ export default function AdminDashboard() {
             <Badge variant="success" className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
               Submitted
             </Badge>
-            <div className="text-xs">
+            <div className={`text-xs ${dateClass}`}>
               {dateDisplay} at {timeDisplay}
             </div>
           </div>
@@ -1100,6 +1344,11 @@ export default function AdminDashboard() {
                             columns={inspectionColumns}
                             data={getPaginatedData(filteredInspections)}
                             loading={loading}
+                            rowClassName={(rowIndex) => 
+                              rowIndex % 2 === 0 
+                                ? "bg-white dark:bg-gray-900 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150" 
+                                : "bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors duration-150"
+                            }
                           />
                         </div>
                       </div>
@@ -1174,7 +1423,20 @@ export default function AdminDashboard() {
       <InspectionDetailDialog
         inspection={selectedInspection}
         open={showInspectionDetail}
-        onOpenChange={setShowInspectionDetail}
+        onOpenChange={(open) => {
+          setShowInspectionDetail(open);
+          if (!open) {
+            setIssueFilter(null);
+          }
+        }}
+        issueFilter={issueFilter}
+      />
+      
+      {/* No Issues Dialog */}
+      <NoIssuesDialog
+        inspection={selectedInspection}
+        open={showNoIssuesDialog}
+        onOpenChange={setShowNoIssuesDialog}
       />
     </div>
   );

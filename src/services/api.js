@@ -13,6 +13,7 @@ import {
   serverTimestamp,
   limit,
   setDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { auth } from "./firebase";
@@ -133,7 +134,7 @@ export const getAllInspections = async (limitCount = 50) => {
             notes: item.notes || ''
           })) || []
         })) || [],
-        status: data.status || 'pending',
+        status: 'submitted',
         notes: data.notes || '',
         fixed: data.fixed || false
       });
@@ -584,6 +585,56 @@ export const updateInspection = async (inspectionId, inspectionData) => {
     };
   } catch (error) {
     console.error("Error updating inspection:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Update category order
+export const updateCategoryOrder = async (categoryOrders) => {
+  try {
+    // Create a batch to update all categories at once
+    const batch = writeBatch(db);
+    
+    // Update each category's order
+    categoryOrders.forEach(({ id, order }) => {
+      const categoryRef = doc(db, COLLECTIONS.CATEGORIES, id);
+      batch.update(categoryRef, { 
+        order,
+        updatedAt: serverTimestamp()
+      });
+    });
+    
+    // Commit the batch
+    await batch.commit();
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating category order:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Update item order
+export const updateItemOrder = async (categoryId, itemOrders) => {
+  try {
+    // Create a batch to update all items at once
+    const batch = writeBatch(db);
+    
+    // Update each item's order
+    itemOrders.forEach(({ id, order }) => {
+      const itemRef = doc(db, COLLECTIONS.ITEMS, id);
+      batch.update(itemRef, { 
+        order,
+        updatedAt: serverTimestamp()
+      });
+    });
+    
+    // Commit the batch
+    await batch.commit();
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating item order:", error);
     return { success: false, error: error.message };
   }
 };

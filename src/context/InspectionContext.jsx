@@ -76,6 +76,7 @@ export function InspectionProvider({ children }) {
       percentComplete: totalItems
         ? Math.round((completedItems / totalItems) * 100)
         : 0,
+      isComplete: completedItems === totalItems
     };
   };
 
