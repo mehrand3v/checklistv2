@@ -50,7 +50,14 @@ export default function Home() {
                 <ClipboardCheck className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600 dark:text-blue-400" />
               </div>
             </motion.div>
-            <CardTitle className="text-xl sm:text-2xl">CSR Daily Walk</CardTitle>
+            <div className="flex items-center gap-2">
+              <img 
+                src="/icon.png" 
+                alt="SafeWalk Logo" 
+                className="h-8 w-8 object-contain"
+              />
+              <CardTitle className="text-xl sm:text-2xl">SafeWalk</CardTitle>
+            </div>
           </CardHeader>
 
           <CardContent className="space-y-4">

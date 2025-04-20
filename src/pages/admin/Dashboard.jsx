@@ -162,9 +162,16 @@ function NoIssuesDialog({ inspection, open, onOpenChange }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
         <DialogHeader>
-          <DialogTitle className="text-center text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
-            Perfect Inspection!
-          </DialogTitle>
+          <div className="flex items-center justify-center gap-2">
+            <img 
+              src="/icon.png" 
+              alt="SafeWalk Logo" 
+              className="h-6 w-6 object-contain"
+            />
+            <DialogTitle className="text-2xl font-bold text-green-600 dark:text-green-400">
+              Perfect Inspection!
+            </DialogTitle>
+          </div>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center py-6 space-y-4">
           <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -265,14 +272,21 @@ function InspectionDetailDialog({
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-2">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-              Inspection Details
-              {issueFilter && (
-                <span className="ml-2 text-sm font-normal text-muted-foreground">
-                  ({issueFilter === 'fixed' ? 'Fixed' : 'Not Fixed'} Issues)
-                </span>
-              )}
-            </DialogTitle>
+            <div className="flex items-center gap-2">
+              <img 
+                src="/icon.png" 
+                alt="SafeWalk Logo" 
+                className="h-6 w-6 object-contain"
+              />
+              <DialogTitle className="text-lg text-foreground">
+                Inspection Details
+                {issueFilter && (
+                  <span className="ml-2 text-sm font-normal text-muted-foreground">
+                    ({issueFilter === 'fixed' ? 'Fixed' : 'Not Fixed'} Issues)
+                  </span>
+                )}
+              </DialogTitle>
+            </div>
           </div>
         </DialogHeader>
         <div className="space-y-3">
@@ -789,11 +803,11 @@ export default function AdminDashboard() {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
         
-        // Format the date with relative time indicator
+        // Format the date with year in compact format
         let dateDisplay = inspectionDate.toLocaleDateString(undefined, {
-          year: "numeric",
-          month: "short",
+          month: "numeric",
           day: "numeric",
+          year: "2-digit"
         });
         
         // Add relative time indicator with special styling
@@ -802,24 +816,20 @@ export default function AdminDashboard() {
         
         if (inspectionDate.toDateString() === today.toDateString()) {
           timeIndicator = " (Today)";
-          timeIndicatorClass = "text-amber-600 dark:text-amber-400 font-semibold";
+          timeIndicatorClass = "text-amber-600 dark:text-amber-400 text-xs";
         } else if (inspectionDate.toDateString() === yesterday.toDateString()) {
           timeIndicator = " (Yesterday)";
-          timeIndicatorClass = "text-indigo-600 dark:text-indigo-400 font-semibold";
+          timeIndicatorClass = "text-indigo-600 dark:text-indigo-400 text-xs";
         } else {
           const daysDiff = Math.floor((today - inspectionDate) / (1000 * 60 * 60 * 24));
           if (daysDiff < 7) {
-            timeIndicator = ` (${daysDiff} days ago)`;
-            timeIndicatorClass = "text-teal-600 dark:text-teal-400";
-          } else if (daysDiff < 30) {
-            const weeks = Math.floor(daysDiff / 7);
-            timeIndicator = ` (${weeks} week${weeks > 1 ? 's' : ''} ago)`;
-            timeIndicatorClass = "text-teal-600 dark:text-teal-400";
+            timeIndicator = ` (${daysDiff}d)`;
+            timeIndicatorClass = "text-teal-600 dark:text-teal-400 text-xs";
           }
         }
         
         return (
-          <div className="font-medium text-green-700 dark:text-green-300">
+          <div className="font-medium text-green-700 dark:text-green-300 text-sm">
             {dateDisplay}
             {timeIndicator && <span className={timeIndicatorClass}>{timeIndicator}</span>}
           </div>
@@ -1189,7 +1199,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="container py-6">
-      <h1 className="text-3xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent hidden sm:block">Admin Dashboard</h1>
+      <h1 className="text-lg font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+        Dashboard
+      </h1>
 
       {/* Store Filter - Expandable */}
       <div className="mb-6">

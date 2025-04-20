@@ -69,7 +69,12 @@ export default function RootLayout() {
       <header className="sticky top-0 z-50 border-b border-slate-200/80 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-slate-900/80">
         <div className="container py-4 px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">CSR Daily Walk</h1>
+            <img 
+              src="/icon.png" 
+              alt="SafeWalk Logo" 
+              className="h-8 w-8 object-contain"
+            />
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">SafeWalk</h1>
           </div>
           
           {/* Mobile menu button */}
