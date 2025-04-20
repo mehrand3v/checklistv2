@@ -31,6 +31,8 @@ import {
   Download,
   ChevronDown,
   ChevronUp,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import { DataTable } from "@/components/admin/DataTable";
 import { useAuth } from "@/context/AuthContext";
@@ -74,6 +76,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from 'canvas-confetti';
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 
 // Add this new component for the no issues celebration dialog
 function NoIssuesDialog({ inspection, open, onOpenChange }) {
@@ -194,8 +198,18 @@ function NoIssuesDialog({ inspection, open, onOpenChange }) {
   );
 }
 
-// Update the component definition to accept issueFilter prop
-function InspectionDetailDialog({ inspection, open, onOpenChange, issueFilter }) {
+// Update the component definition to accept additional props
+function InspectionDetailDialog({ 
+  inspection, 
+  open, 
+  onOpenChange, 
+  issueFilter, 
+  canEdit, 
+  canDelete,
+  onEdit,
+  onDelete,
+  onGeneratePDF
+}) {
   if (!inspection) return null;
 
   // Filter categories based on issueFilter
@@ -249,101 +263,139 @@ function InspectionDetailDialog({ inspection, open, onOpenChange, issueFilter })
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-            Inspection Details
-            {issueFilter && (
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                ({issueFilter === 'fixed' ? 'Fixed' : 'Not Fixed'} Issues)
-              </span>
-            )}
-          </DialogTitle>
+        <DialogHeader className="space-y-2">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+              Inspection Details
+              {issueFilter && (
+                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  ({issueFilter === 'fixed' ? 'Fixed' : 'Not Fixed'} Issues)
+                </span>
+              )}
+            </DialogTitle>
+          </div>
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
-              <h3 className="font-semibold text-blue-700 dark:text-blue-300">Store Number</h3>
-              <p className="text-blue-900 dark:text-blue-100">{inspection.storeNumber}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
-              <h3 className="font-semibold text-purple-700 dark:text-purple-300">Inspector</h3>
-              <p className="text-purple-900 dark:text-purple-100">{inspection.inspectedBy}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
-              <h3 className="font-semibold text-green-700 dark:text-green-300">Inspection Date</h3>
-              <p className="text-green-900 dark:text-green-100">{new Date(inspection.inspectionDate).toLocaleDateString()}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
-              <h3 className="font-semibold text-amber-700 dark:text-amber-300">Status</h3>
-              <div className="space-y-1">
-                <Badge variant={inspection.fixed ? "success" : "destructive"} className="text-sm">
-                  {inspection.fixed ? "Fixed" : "Submitted"}
-                </Badge>
-                {inspection.submittedAt && (
-                  <div className="flex items-center mt-1">
-                    <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-900/20 dark:text-indigo-400 dark:ring-indigo-400/30">
+        <div className="space-y-3">
+          <div className="space-y-3">
+            {/* Compact info cards */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
+                <h3 className="font-semibold text-blue-700 dark:text-blue-300 text-xs">Store Number</h3>
+                <p className="text-blue-900 dark:text-blue-100 text-sm">{inspection.storeNumber}</p>
+              </div>
+              <div className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
+                <h3 className="font-semibold text-purple-700 dark:text-purple-300 text-xs">Inspector</h3>
+                <p className="text-purple-900 dark:text-purple-100 text-sm">{inspection.inspectedBy}</p>
+              </div>
+              <div className="p-1.5 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+                <h3 className="font-semibold text-green-700 dark:text-green-300 text-xs">Inspection Date</h3>
+                <p className="text-green-900 dark:text-green-100 text-sm">{new Date(inspection.inspectionDate).toLocaleDateString()}</p>
+              </div>
+              <div className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
+                <h3 className="font-semibold text-amber-700 dark:text-amber-300 text-xs">Status</h3>
+                <div className="flex items-center space-x-2">
+                  <Badge variant={inspection.fixed ? "success" : "destructive"} className="text-xs">
+                    {inspection.fixed ? "Fixed" : "Submitted"}
+                  </Badge>
+                  {inspection.submittedAt && (
+                    <span className="inline-flex items-center rounded-md bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10 dark:bg-indigo-900/20 dark:text-indigo-400 dark:ring-indigo-400/30">
                       {formatSubmissionDateTime()}
                     </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Categories</h3>
-            {filteredCategories?.map((category) => (
-              <div key={category.id} className="border rounded-lg p-4 bg-white dark:bg-gray-800 shadow-sm">
-                <h4 className="font-semibold mb-2 text-blue-700 dark:text-blue-300">{category.title}</h4>
-                <div className="space-y-2">
-                  {category.items?.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`flex items-start justify-between p-3 rounded ${
-                        item.status === "yes" 
-                          ? "bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800" 
-                          : item.fixed 
-                            ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800" 
-                            : "bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800"
-                      }`}
-                    >
-                      <div className="flex-1">
-                        <p className={`font-medium ${
-                          item.status === "yes" 
-                            ? "text-green-900 dark:text-green-100" 
-                            : item.fixed 
-                              ? "text-blue-900 dark:text-blue-100" 
-                              : "text-red-900 dark:text-red-100"
-                        }`}>{item.description}</p>
-                        {item.notes && (
-                          <p className="text-sm text-muted-foreground mt-1">
-                            Notes: {item.notes}
-                          </p>
-                        )}
-                      </div>
-                      <div className="ml-4">
-                        <Badge
-                          variant={
-                            item.status === "yes"
-                              ? "success"
-                              : item.fixed
-                              ? "default"
-                              : "destructive"
-                          }
-                          className="text-sm"
-                        >
-                          {item.status === "yes"
-                            ? "Pass"
-                            : item.fixed
-                            ? "Fixed"
-                            : "Fail"}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
+                  )}
                 </div>
               </div>
-            ))}
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-semibold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent flex items-center justify-between">
+                <span>Categories</span>
+                <div className="flex items-center gap-2">
+                  {canEdit && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onEdit(inspection)}
+                      className="border-amber-200 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-900/30"
+                      title="Edit inspection"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => onGeneratePDF(inspection)}
+                    className="border-green-200 text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-300 dark:hover:bg-green-900/30"
+                    title="Download PDF"
+                  >
+                    <FileDown className="h-4 w-4" />
+                  </Button>
+                  {canDelete && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onDelete(inspection)}
+                      className="border-red-200 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+                      title="Delete inspection"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </h3>
+              {filteredCategories?.map((category) => (
+                <div key={category.id} className="border rounded-lg p-3 bg-white dark:bg-gray-800 shadow-sm">
+                  <h4 className="font-semibold mb-2 text-blue-700 dark:text-blue-300 text-sm">{category.title}</h4>
+                  <div className="space-y-1.5">
+                    {category.items?.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`flex items-start justify-between p-2 rounded ${
+                          item.status === "yes" 
+                            ? "bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800" 
+                            : item.fixed 
+                              ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800" 
+                              : "bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800"
+                        }`}
+                      >
+                        <div className="flex-1">
+                          <p className={`font-medium text-sm ${
+                            item.status === "yes" 
+                              ? "text-green-900 dark:text-green-100" 
+                              : item.fixed 
+                                ? "text-blue-900 dark:text-blue-100" 
+                                : "text-red-900 dark:text-red-100"
+                          }`}>{item.description}</p>
+                          {item.notes && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Notes: {item.notes}
+                            </p>
+                          )}
+                        </div>
+                        <div className="ml-3">
+                          <Badge
+                            variant={
+                              item.status === "yes"
+                                ? "success"
+                                : item.fixed
+                                ? "default"
+                                : "destructive"
+                            }
+                            className="text-xs"
+                          >
+                            {item.status === "yes"
+                              ? "Pass"
+                              : item.fixed
+                              ? "Fixed"
+                              : "Fail"}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
         <DialogFooter>
@@ -557,6 +609,12 @@ export default function AdminDashboard() {
   // Add state for no issues dialog
   const [showNoIssuesDialog, setShowNoIssuesDialog] = useState(false);
 
+  // Add state for form validation
+  const [storeNumber, setStoreNumber] = useState(inspectionToEdit?.storeNumber || "");
+  const [inspector, setInspector] = useState(inspectionToEdit?.inspectedBy || "");
+  const [inspectionDate, setInspectionDate] = useState(inspectionToEdit?.inspectionDate ? new Date(inspectionToEdit.inspectionDate).toISOString().split('T')[0] : "");
+  const [errors, setErrors] = useState({});
+
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
@@ -674,12 +732,29 @@ export default function AdminDashboard() {
   };
 
   // Handle inspection update
-  const handleInspectionUpdate = (updatedInspection) => {
-    setInspections((prev) =>
-      prev.map((inspection) =>
-        inspection.id === updatedInspection.id ? updatedInspection : inspection
-      )
-    );
+  const handleInspectionUpdate = async (updatedInspection) => {
+    try {
+      // Update the local state
+      setInspections((prev) =>
+        prev.map((inspection) =>
+          inspection.id === updatedInspection.id 
+            ? { ...updatedInspection, status: 'submitted' }
+            : inspection
+        )
+      );
+      
+      // Refresh the inspections list from the server
+      const inspectionsResult = await getAllInspections();
+      if (inspectionsResult.success) {
+        setInspections(inspectionsResult.inspections || []);
+        toast.success("Inspection updated successfully");
+      } else {
+        toast.error("Failed to refresh inspections: " + inspectionsResult.error);
+      }
+    } catch (error) {
+      console.error("Error updating inspection:", error);
+      toast.error("An error occurred while updating the inspection");
+    }
   };
 
   // Columns for inspections table
@@ -803,7 +878,7 @@ export default function AdminDashboard() {
         if (issueCount === 0) {
           return (
             <div 
-              className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200"
+              className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200"
               onClick={() => {
                 setSelectedInspection(row.original);
                 setShowNoIssuesDialog(true);
@@ -814,18 +889,20 @@ export default function AdminDashboard() {
           );
         }
 
-        // Otherwise show fixed and not fixed counts
+        // Otherwise show fixed and not fixed counts with icons
         return (
-          <div className="flex flex-wrap items-center gap-1">
+          <div className="flex items-center gap-1 whitespace-nowrap">
             <button
               onClick={() => {
                 setSelectedInspection(row.original);
                 setIssueFilter('fixed');
                 setShowInspectionDetail(true);
               }}
-              className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30 transition-all duration-200 text-xs font-medium"
+              className="inline-flex items-center px-1 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30 transition-all duration-200 text-xs font-medium"
+              title={`${fixedIssueCount} fixed issues`}
             >
-              {fixedIssueCount} fixed
+              <CheckCircle className="h-3 w-3 mr-0.5" />
+              {fixedIssueCount}
             </button>
             <button
               onClick={() => {
@@ -833,64 +910,12 @@ export default function AdminDashboard() {
                 setIssueFilter('open');
                 setShowInspectionDetail(true);
               }}
-              className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/30 transition-all duration-200 text-xs font-medium"
+              className="inline-flex items-center px-1 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/30 transition-all duration-200 text-xs font-medium"
+              title={`${issueCount - fixedIssueCount} not fixed issues`}
             >
-              {issueCount - fixedIssueCount} not fixed
+              <AlertCircle className="h-3 w-3 mr-0.5" />
+              {issueCount - fixedIssueCount}
             </button>
-          </div>
-        );
-      },
-    },
-    {
-      header: "Submission Status",
-      accessorKey: "submittedAt",
-      cell: ({ row }) => {
-        const submittedAt = row.original?.submittedAt;
-        
-        if (!submittedAt) return (
-          <div className="flex items-center">
-            <Badge variant="outline" className="bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400">
-              Pending
-            </Badge>
-          </div>
-        );
-        
-        const submittedDate = new Date(submittedAt);
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        // Format the submission date with special styling
-        let dateDisplay;
-        let dateClass = "text-indigo-700 dark:text-indigo-300";
-        
-        if (submittedDate.toDateString() === today.toDateString()) {
-          dateDisplay = "Today";
-          dateClass = "text-amber-600 dark:text-amber-400 font-semibold";
-        } else if (submittedDate.toDateString() === yesterday.toDateString()) {
-          dateDisplay = "Yesterday";
-          dateClass = "text-indigo-600 dark:text-indigo-400 font-semibold";
-        } else {
-          dateDisplay = submittedDate.toLocaleDateString(undefined, {
-            month: "short",
-            day: "numeric",
-          });
-        }
-        
-        // Add time
-        const timeDisplay = submittedDate.toLocaleTimeString(undefined, {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        
-        return (
-          <div className="space-y-1">
-            <Badge variant="success" className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400">
-              Submitted
-            </Badge>
-            <div className={`text-xs ${dateClass}`}>
-              {dateDisplay} at {timeDisplay}
-            </div>
           </div>
         );
       },
@@ -899,50 +924,17 @@ export default function AdminDashboard() {
       header: "Actions",
       id: "actions",
       cell: ({ row }) => (
-        <div className="flex items-center space-x-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setSelectedInspection(row.original);
-              setShowInspectionDetail(true);
-            }}
-            className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
-          >
-            <Eye className="h-4 w-4 text-blue-500" />
-          </Button>
-          {canEdit() && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleEditInspection(row.original)}
-              className="hover:bg-amber-50 dark:hover:bg-amber-900/20"
-            >
-              <Edit className="h-4 w-4 text-amber-500" />
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => generatePDF(row.original)}
-            className="hover:bg-green-50 dark:hover:bg-green-900/20"
-          >
-            <FileDown className="h-4 w-4 text-green-500" />
-          </Button>
-          {canDelete() && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                setInspectionToDelete(row.original);
-                setShowDeleteDialog(true);
-              }}
-              className="hover:bg-red-50 dark:hover:bg-red-900/20"
-            >
-              <Trash2 className="h-4 w-4 text-red-500" />
-            </Button>
-          )}
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            setSelectedInspection(row.original);
+            setShowInspectionDetail(true);
+          }}
+          className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+        >
+          <Eye className="h-4 w-4 text-blue-500" />
+        </Button>
       ),
     },
   ];
@@ -1151,6 +1143,48 @@ export default function AdminDashboard() {
         </div>
       </div>
     );
+  };
+
+  // Validate form
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Store number validation (1-7 digits)
+    if (!storeNumber) {
+      newErrors.storeNumber = "Store number is required";
+    } else if (!/^\d{1,7}$/.test(storeNumber)) {
+      newErrors.storeNumber = "Store number must be 1-7 digits";
+    }
+
+    // Inspection date validation (no future dates)
+    if (!inspectionDate) {
+      newErrors.inspectionDate = "Inspection date is required";
+    } else {
+      const selectedDate = new Date(inspectionDate);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // End of today
+      if (selectedDate > today) {
+        newErrors.inspectionDate = "Inspection date cannot be in the future";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      onUpdate({
+        ...inspectionToEdit,
+        storeNumber,
+        inspectedBy: inspector,
+        inspectionDate,
+        status: 'submitted'
+      });
+      setShowEditDialog(false);
+    }
   };
 
   return (
@@ -1430,6 +1464,19 @@ export default function AdminDashboard() {
           }
         }}
         issueFilter={issueFilter}
+        canEdit={canEdit()}
+        canDelete={canDelete()}
+        onEdit={(inspection) => {
+          setInspectionToEdit(inspection);
+          setShowEditDialog(true);
+          setShowInspectionDetail(false);
+        }}
+        onDelete={(inspection) => {
+          setInspectionToDelete(inspection);
+          setShowDeleteDialog(true);
+          setShowInspectionDetail(false);
+        }}
+        onGeneratePDF={generatePDF}
       />
       
       {/* No Issues Dialog */}

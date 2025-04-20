@@ -29,11 +29,15 @@ export function EditInspectionDialog({ inspection, open, onOpenChange, onUpdate 
       const result = await updateInspection(inspection.id, {
         ...inspection,
         ...formData,
+        status: 'submitted',
       });
 
       if (result.success) {
         toast.success("Inspection updated successfully");
-        onUpdate(result.inspection);
+        onUpdate({
+          ...result.inspection,
+          status: 'submitted',
+        });
         onOpenChange(false);
       } else {
         toast.error(result.error || "Failed to update inspection");
