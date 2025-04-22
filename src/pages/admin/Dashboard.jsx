@@ -887,44 +887,42 @@ export default function AdminDashboard() {
         // If there are no issues, show a clickable status indicator
         if (issueCount === 0) {
           return (
-            <button
+            <Badge
+              variant="success"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                // Lighter confetti effect with mixed shapes
                 const defaults = {
-                  origin: { y: 0.6 }, // Start lower
-                  gravity: 0.5, // Lighter gravity
-                  startVelocity: 15, // Slower initial velocity
-                  spread: 70, // Narrower spread
-                  ticks: 200, // Shorter duration
+                  origin: { y: 0.6 },
+                  gravity: 0.5,
+                  startVelocity: 15,
+                  spread: 70,
+                  ticks: 200,
                   zIndex: 9999,
-                  scalar: 1, // Smaller base size
-                  shapes: ['circle', 'square'], // Mix of shapes
+                  scalar: 1,
+                  shapes: ['circle', 'square'],
                   colors: [
-                    '#4ADE80', // Light green
-                    '#60A5FA', // Light blue
-                    '#F472B6', // Light pink
-                    '#A78BFA', // Light purple
-                    '#FBBF24', // Light yellow
-                    '#FFFFFF'  // White for sparkle
+                    '#4ADE80',
+                    '#60A5FA',
+                    '#F472B6',
+                    '#A78BFA',
+                    '#FBBF24',
+                    '#FFFFFF'
                   ]
                 };
 
-                // Fire a single burst of confetti
                 confetti({
                   ...defaults,
-                  particleCount: 100, // Fewer particles
+                  particleCount: 100,
                   spread: 70,
                   origin: { y: 0.6 }
                 });
               }}
-              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/20 dark:hover:bg-green-900/30 dark:text-green-400 dark:border-green-800 transition-all duration-200"
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-              <span className="text-xs font-medium">All Clear</span>
-            </button>
+              <div className="w-1.5 h-1.5 rounded-full bg-white mr-1"></div>
+              All Clear
+            </Badge>
           );
         }
 
@@ -932,32 +930,32 @@ export default function AdminDashboard() {
         return (
           <div className="flex items-center gap-1.5 whitespace-nowrap">
             {fixedIssueCount > 0 && (
-              <button
+              <Badge
+                variant="success"
                 onClick={() => {
                   setSelectedInspection(row.original);
                   setIssueFilter('fixed');
                   setShowInspectionDetail(true);
                 }}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30 transition-all duration-200 text-xs font-medium"
-                title={`${fixedIssueCount} fixed issues`}
+                style={{ cursor: 'pointer' }}
               >
-                <CheckCircle className="h-3 w-3" />
+                <CheckCircle className="h-3 w-3 mr-1" />
                 {fixedIssueCount}
-              </button>
+              </Badge>
             )}
             {(issueCount - fixedIssueCount) > 0 && (
-              <button
+              <Badge
+                variant="destructive"
                 onClick={() => {
                   setSelectedInspection(row.original);
                   setIssueFilter('open');
                   setShowInspectionDetail(true);
                 }}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/30 transition-all duration-200 text-xs font-medium"
-                title={`${issueCount - fixedIssueCount} not fixed issues`}
+                style={{ cursor: 'pointer' }}
               >
-                <AlertCircle className="h-3 w-3" />
+                <AlertCircle className="h-3 w-3 mr-1" />
                 {issueCount - fixedIssueCount}
-              </button>
+              </Badge>
             )}
           </div>
         );
@@ -1234,305 +1232,307 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="container py-6">
-      <h1 className="text-lg font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-        Dashboard
-      </h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/80 via-indigo-50/50 to-purple-50/80 dark:from-blue-950/20 dark:via-indigo-950/10 dark:to-purple-950/20">
+      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <h1 className="text-lg font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+          Dashboard
+        </h1>
 
-      {/* Store Filter - Expandable */}
-      <div className="mb-6">
-        <Card>
-          <CardHeader 
-            className="pb-2 cursor-pointer" 
-            onClick={() => setShowStoreOverview(!showStoreOverview)}
+        {/* Store Filter - Expandable */}
+        <div className="mb-6">
+          <Card>
+            <CardHeader 
+              className="pb-2 cursor-pointer" 
+              onClick={() => setShowStoreOverview(!showStoreOverview)}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Store Overview</CardTitle>
+                  <CardDescription>Select a store to view detailed statistics</CardDescription>
+                </div>
+                <Button variant="ghost" size="icon">
+                  {showStoreOverview ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
+                </Button>
+              </div>
+            </CardHeader>
+            {showStoreOverview && (
+              <CardContent>
+                <div className="flex items-center space-x-4 mb-4">
+                  <Select value={selectedStore} onValueChange={setSelectedStore}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select store" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Stores</SelectItem>
+                      {uniqueStores.map(store => (
+                        <SelectItem key={store} value={store}>
+                          Store {store}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedStore === "all" ? (
+                    <>
+                      <div className="flex items-center space-x-4">
+                        <div className="bg-primary/10 p-2 rounded-full">
+                          <FileText className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Total Inspections</p>
+                          <p className="text-2xl font-bold">{inspections.length}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-4">
+                        <div className="bg-green-500/10 p-2 rounded-full">
+                          <Store className="h-6 w-6 text-green-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Active Stores</p>
+                          <p className="text-2xl font-bold">{uniqueStores.length}</p>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center space-x-4">
+                        <div className="bg-primary/10 p-2 rounded-full">
+                          <FileText className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Store Inspections</p>
+                          <p className="text-2xl font-bold">{storeStats[selectedStore]?.totalInspections || 0}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-4">
+                        <div className="bg-green-500/10 p-2 rounded-full">
+                          <Store className="h-6 w-6 text-green-500" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Last Inspection</p>
+                          <p className="text-2xl font-bold">
+                            {storeStats[selectedStore]?.lastInspection
+                              ? new Date(storeStats[selectedStore].lastInspection).toLocaleDateString()
+                              : 'Never'}
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        </div>
+
+        <div className="space-y-4">
+          <Tabs
+            defaultValue="inspections"
+            className="w-full"
+            onValueChange={setActiveTab}
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Store Overview</CardTitle>
-                <CardDescription>Select a store to view detailed statistics</CardDescription>
-              </div>
-              <Button variant="ghost" size="icon">
-                {showStoreOverview ? (
-                  <ChevronUp className="h-5 w-5" />
-                ) : (
-                  <ChevronDown className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
-          </CardHeader>
-          {showStoreOverview && (
-            <CardContent>
-              <div className="flex items-center space-x-4 mb-4">
-                <Select value={selectedStore} onValueChange={setSelectedStore}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Select store" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Stores</SelectItem>
-                    {uniqueStores.map(store => (
-                      <SelectItem key={store} value={store}>
-                        Store {store}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <TabsList className="mb-6">
+              <TabsTrigger 
+                value="inspections" 
+                className="flex items-center gap-2 data-[state=active]:bg-blue-100 dark:data-[state=active]:bg-blue-900/50 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300"
+              >
+                <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 transition-transform duration-200 group-hover:scale-110" />
+                <span className="font-medium">Inspections</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="categories" 
+                className="flex items-center gap-2 data-[state=active]:bg-purple-100 dark:data-[state=active]:bg-purple-900/50 data-[state=active]:text-purple-700 dark:data-[state=active]:text-purple-300"
+              >
+                <Database className="h-5 w-5 text-purple-600 dark:text-purple-400 transition-transform duration-200 group-hover:scale-110" />
+                <span className="font-medium">Categories & Items</span>
+              </TabsTrigger>
+            </TabsList>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {selectedStore === "all" ? (
-                  <>
-                    <div className="flex items-center space-x-4">
-                      <div className="bg-primary/10 p-2 rounded-full">
-                        <FileText className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Total Inspections</p>
-                        <p className="text-2xl font-bold">{inspections.length}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                      <div className="bg-green-500/10 p-2 rounded-full">
-                        <Store className="h-6 w-6 text-green-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Active Stores</p>
-                        <p className="text-2xl font-bold">{uniqueStores.length}</p>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center space-x-4">
-                      <div className="bg-primary/10 p-2 rounded-full">
-                        <FileText className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Store Inspections</p>
-                        <p className="text-2xl font-bold">{storeStats[selectedStore]?.totalInspections || 0}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-4">
-                      <div className="bg-green-500/10 p-2 rounded-full">
-                        <Store className="h-6 w-6 text-green-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Last Inspection</p>
-                        <p className="text-2xl font-bold">
-                          {storeStats[selectedStore]?.lastInspection
-                            ? new Date(storeStats[selectedStore].lastInspection).toLocaleDateString()
-                            : 'Never'}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          )}
-        </Card>
-      </div>
-
-      <div className="space-y-4">
-        <Tabs
-          defaultValue="inspections"
-          className="w-full"
-          onValueChange={setActiveTab}
-        >
-          <TabsList className="mb-6">
-            <TabsTrigger 
-              value="inspections" 
-              className="flex items-center gap-2 data-[state=active]:bg-blue-100 dark:data-[state=active]:bg-blue-900/50 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300"
-            >
-              <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 transition-transform duration-200 group-hover:scale-110" />
-              <span className="font-medium">Inspections</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="categories" 
-              className="flex items-center gap-2 data-[state=active]:bg-purple-100 dark:data-[state=active]:bg-purple-900/50 data-[state=active]:text-purple-700 dark:data-[state=active]:text-purple-300"
-            >
-              <Database className="h-5 w-5 text-purple-600 dark:text-purple-400 transition-transform duration-200 group-hover:scale-110" />
-              <span className="font-medium">Categories & Items</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <div className="mt-4">
-            <AnimatePresence>
-              <TabsContent value="inspections" key="inspections">
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Inspections</CardTitle>
-                      <CardDescription>
-                        View inspection history
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:space-x-2 mb-4">
-                        <div className="relative flex-1 w-full sm:w-auto">
-                          <Search className="absolute left-2 top-2.5 h-4 w-4 text-blue-500" />
-                          <Input
-                            placeholder="Search inspections..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-8 w-full"
-                          />
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <Download className="h-4 w-4 mr-2" />
-                              Export
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => {
-                              if (filteredInspections.length > 0) {
-                                exportToCsv(filteredInspections, "inspections.csv");
-                              } else {
-                                toast.error("No data to export");
-                              }
-                            }}>
-                              <FileText className="h-4 w-4 mr-2 text-blue-500" />
-                              Export as CSV
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => {
-                              if (filteredInspections.length > 0) {
-                                try {
-                                  generatePDF(filteredInspections);
-                                } catch (error) {
-                                  console.error("Error in PDF generation:", error);
-                                  toast.error("Failed to generate PDF: " + (error.message || "Unknown error"));
+            <div className="mt-4">
+              <AnimatePresence>
+                <TabsContent value="inspections" key="inspections">
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Inspections</CardTitle>
+                        <CardDescription>
+                          View inspection history
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="bg-gradient-to-br from-sky-50/80 via-indigo-50/50 to-purple-50/80 dark:from-sky-950/20 dark:via-indigo-950/10 dark:to-purple-950/20 rounded-b-lg">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:space-x-2 mb-4">
+                          <div className="relative flex-1 w-full sm:w-auto">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-blue-500" />
+                            <Input
+                              placeholder="Search inspections..."
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              className="pl-8 w-full bg-white/50 dark:bg-slate-950/50"
+                            />
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm" className="bg-white/50 dark:bg-slate-950/50">
+                                <Download className="h-4 w-4 mr-2" />
+                                Export
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => {
+                                if (filteredInspections.length > 0) {
+                                  exportToCsv(filteredInspections, "inspections.csv");
+                                } else {
+                                  toast.error("No data to export");
                                 }
-                              } else {
-                                toast.error("No data to export");
+                              }}>
+                                <FileText className="h-4 w-4 mr-2 text-blue-500" />
+                                Export as CSV
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => {
+                                if (filteredInspections.length > 0) {
+                                  try {
+                                    generatePDF(filteredInspections);
+                                  } catch (error) {
+                                    console.error("Error in PDF generation:", error);
+                                    toast.error("Failed to generate PDF: " + (error.message || "Unknown error"));
+                                  }
+                                } else {
+                                  toast.error("No data to export");
+                                }
+                              }}>
+                                <FileText className="h-4 w-4 mr-2 text-blue-500" />
+                                Export as PDF
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        <div className="overflow-x-auto -mx-4 sm:mx-0">
+                          <div className="min-w-full inline-block align-middle">
+                            <DataTable
+                              columns={inspectionColumns}
+                              data={getPaginatedData(filteredInspections)}
+                              loading={loading}
+                              rowClassName={(rowIndex) => 
+                                rowIndex % 2 === 0 
+                                  ? "bg-white/50 hover:bg-sky-100/50 transition-colors duration-150" 
+                                  : "bg-white/30 hover:bg-purple-100/50 transition-colors duration-150"
                               }
-                            }}>
-                              <FileText className="h-4 w-4 mr-2 text-blue-500" />
-                              Export as PDF
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      <div className="overflow-x-auto -mx-4 sm:mx-0">
-                        <div className="min-w-full inline-block align-middle">
-                          <DataTable
-                            columns={inspectionColumns}
-                            data={getPaginatedData(filteredInspections)}
-                            loading={loading}
-                            rowClassName={(rowIndex) => 
-                              rowIndex % 2 === 0 
-                                ? "bg-white dark:bg-gray-900 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-150" 
-                                : "bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors duration-150"
-                            }
-                          />
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="mt-4">
-                        {renderPagination()}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </TabsContent>
+                        <div className="mt-4">
+                          {renderPagination()}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </TabsContent>
 
-              <TabsContent value="categories" key="categories">
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Categories & Items</CardTitle>
-                      <CardDescription>
-                        Manage inspection categories and items
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="overflow-x-auto -mx-4 sm:mx-0">
-                        <div className="min-w-full inline-block align-middle">
-                          <CategoryManagement />
+                <TabsContent value="categories" key="categories">
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Categories & Items</CardTitle>
+                        <CardDescription>
+                          Manage inspection categories and items
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="overflow-x-auto -mx-4 sm:mx-0">
+                          <div className="min-w-full inline-block align-middle">
+                            <CategoryManagement />
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </TabsContent>
-            </AnimatePresence>
-          </div>
-        </Tabs>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </TabsContent>
+              </AnimatePresence>
+            </div>
+          </Tabs>
+        </div>
+
+        {/* Edit Dialog */}
+        <EditInspectionDialog
+          inspection={inspectionToEdit}
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          onUpdate={handleInspectionUpdate}
+        />
+
+        {/* Delete Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Inspection</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this inspection? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteInspection}
+                disabled={deleteLoading}
+                className="bg-red-600 text-white hover:bg-red-700"
+              >
+                {deleteLoading ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Inspection Detail Dialog */}
+        <InspectionDetailDialog
+          inspection={selectedInspection}
+          open={showInspectionDetail}
+          onOpenChange={(open) => {
+            setShowInspectionDetail(open);
+            if (!open) {
+              setIssueFilter(null);
+            }
+          }}
+          issueFilter={issueFilter}
+          canEdit={canEdit()}
+          canDelete={canDelete()}
+          onEdit={(inspection) => {
+            setInspectionToEdit(inspection);
+            setShowEditDialog(true);
+            setShowInspectionDetail(false);
+          }}
+          onDelete={(inspection) => {
+            setInspectionToDelete(inspection);
+            setShowDeleteDialog(true);
+            setShowInspectionDetail(false);
+          }}
+          onGeneratePDF={generatePDF}
+        />
+        
+        {/* No Issues Dialog */}
+        <NoIssuesDialog
+          inspection={selectedInspection}
+          open={showNoIssuesDialog}
+          onOpenChange={setShowNoIssuesDialog}
+        />
       </div>
-
-      {/* Edit Dialog */}
-      <EditInspectionDialog
-        inspection={inspectionToEdit}
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
-        onUpdate={handleInspectionUpdate}
-      />
-
-      {/* Delete Dialog */}
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Inspection</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this inspection? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteInspection}
-              disabled={deleteLoading}
-              className="bg-red-600 text-white hover:bg-red-700"
-            >
-              {deleteLoading ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Inspection Detail Dialog */}
-      <InspectionDetailDialog
-        inspection={selectedInspection}
-        open={showInspectionDetail}
-        onOpenChange={(open) => {
-          setShowInspectionDetail(open);
-          if (!open) {
-            setIssueFilter(null);
-          }
-        }}
-        issueFilter={issueFilter}
-        canEdit={canEdit()}
-        canDelete={canDelete()}
-        onEdit={(inspection) => {
-          setInspectionToEdit(inspection);
-          setShowEditDialog(true);
-          setShowInspectionDetail(false);
-        }}
-        onDelete={(inspection) => {
-          setInspectionToDelete(inspection);
-          setShowDeleteDialog(true);
-          setShowInspectionDetail(false);
-        }}
-        onGeneratePDF={generatePDF}
-      />
-      
-      {/* No Issues Dialog */}
-      <NoIssuesDialog
-        inspection={selectedInspection}
-        open={showNoIssuesDialog}
-        onOpenChange={setShowNoIssuesDialog}
-      />
     </div>
   );
 }
