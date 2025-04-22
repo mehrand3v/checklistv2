@@ -1,4 +1,3 @@
-// src/pages/StoreInfoPage.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Store, User, ClipboardCheck, ChevronRight, Loader2 } from "lucide-react";
@@ -137,30 +136,30 @@ export default function StoreInfoPage() {
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-100 p-4 overflow-hidden">
+    <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-100 p-4 overflow-auto pt-12 sm:pt-0">
       <motion.div
         initial="initial"
         animate="animate"
         exit="exit"
         variants={pageVariants}
-        className="w-full max-w-md mx-auto px-4 sm:px-0"
+        className="w-full max-w-md mx-auto px-4 sm:px-0 my-4"
       >
         <motion.div
           whileHover="hover"
           variants={cardVariants}
         >
-          <Card className="border-0 rounded-3xl shadow-xl bg-white overflow-hidden">
+          <Card className="border-0 rounded-2xl shadow-xl bg-white overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
             
-            <CardHeader className="text-center pb-2 pt-6 sm:pt-8">
+            <CardHeader className="text-center pb-1 pt-4 sm:pt-6">
               <motion.div
-                className="flex justify-center mb-4"
+                className="flex justify-center mb-3"
                 variants={iconVariants}
                 initial="initial"
                 animate="animate"
               >
-                <div className="rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 p-5 shadow-md">
-                  <ClipboardCheck className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600" />
+                <div className="rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 p-4 shadow-md">
+                  <ClipboardCheck className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600" />
                 </div>
               </motion.div>
               
@@ -169,16 +168,16 @@ export default function StoreInfoPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
               >
-                <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-800">Store Inspection</CardTitle>
-                <p className="text-blue-600 mt-2 text-sm sm:text-base font-medium">Enter your details to begin</p>
+                <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">Store Inspection</CardTitle>
+                <p className="text-blue-600 mt-1 text-xs sm:text-sm font-medium">Enter your details to begin</p>
               </motion.div>
             </CardHeader>
             
-            <CardContent className="pt-4 pb-8 px-4 sm:px-6">
-              <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+            <CardContent className="pt-2 pb-6 px-4 sm:px-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <AnimatePresence>
                   <motion.div 
-                    className="space-y-3"
+                    className="space-y-2"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5, duration: 0.4 }}
@@ -200,27 +199,27 @@ export default function StoreInfoPage() {
                           const value = e.target.value.replace(/\D/g, '').slice(0, 7);
                           setStoreNumber(value);
                         }}
-                        className="pl-10 pr-12 text-lg h-14 rounded-xl border-2 border-blue-100 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 shadow-sm focus:shadow-md"
+                        className="pl-10 pr-12 h-12 rounded-xl border-2 border-blue-100 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 shadow-sm focus:shadow-md"
                         maxLength={7}
                       />
-                      <Store className="absolute left-3 top-4 h-6 w-6 text-blue-500" />
+                      <Store className="absolute left-3 top-3 h-6 w-6 text-blue-500" />
                       <AnimatePresence>
                         {storeNumber.length === 7 && /^\d{7}$/.test(storeNumber) && (
                           <motion.div 
                             initial={{ scale: 0, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0, opacity: 0 }}
-                            className="absolute right-3 top-4 text-green-500"
+                            className="absolute right-3 top-3 text-green-500"
                           >
                             <div className="bg-green-100 rounded-full p-1 shadow-sm">
-                              <Check className="h-5 w-5" />
+                              <Check className="h-4 w-4" />
                             </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
                     </motion.div>
                     <motion.p 
-                      className={`text-sm ${storeNumber.length === 7 && /^\d{7}$/.test(storeNumber) ? "text-green-600" : "text-blue-600"} font-medium ml-1`}
+                      className={`text-xs ${storeNumber.length === 7 && /^\d{7}$/.test(storeNumber) ? "text-green-600" : "text-blue-600"} font-medium ml-1`}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.6 }}
@@ -236,7 +235,7 @@ export default function StoreInfoPage() {
                 
                 <AnimatePresence>
                   <motion.div 
-                    className="space-y-3"
+                    className="space-y-2"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.7, duration: 0.4 }}
@@ -253,9 +252,9 @@ export default function StoreInfoPage() {
                         placeholder="Your Name"
                         value={inspectorName}
                         onChange={(e) => setInspectorName(e.target.value)}
-                        className="pl-10 text-lg h-14 rounded-xl border-2 border-blue-100 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 shadow-sm focus:shadow-md"
+                        className="pl-10 h-12 rounded-xl border-2 border-blue-100 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 shadow-sm focus:shadow-md"
                       />
-                      <User className="absolute left-3 top-4 h-6 w-6 text-blue-500" />
+                      <User className="absolute left-3 top-3 h-6 w-6 text-blue-500" />
                     </motion.div>
                   </motion.div>
                 </AnimatePresence>
@@ -264,6 +263,7 @@ export default function StoreInfoPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.9, duration: 0.5 }}
+                  className="pt-2"
                 >
                   <motion.button
                     type="submit"
@@ -271,30 +271,44 @@ export default function StoreInfoPage() {
                     whileTap="tap"
                     whileHover={isFormValid ? "hover" : {}}
                     variants={buttonVariants}
-                    className={`w-full h-14 text-lg font-medium rounded-xl mt-6 transition-all duration-300 ${
+                    className={`w-full h-12 font-medium rounded-xl transition-all duration-300 ${
                       isFormValid 
                       ? "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600 text-white shadow-lg hover:shadow-xl" 
                       : "bg-gray-200 text-gray-400"
                     } flex items-center justify-center`}
                   >
                     {isSubmitting ? (
-                      <>
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      <div className="flex items-center justify-center">
+                        <svg 
+                          className="animate-spin mr-2 h-4 w-4 text-white" 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          fill="none" 
+                          viewBox="0 0 24 24"
                         >
-                          <Loader2 className="mr-2 h-5 w-5" />
-                        </motion.div>
-                        Starting...
-                      </>
+                          <circle 
+                            className="opacity-25" 
+                            cx="12" 
+                            cy="12" 
+                            r="10" 
+                            stroke="currentColor" 
+                            strokeWidth="4"
+                          ></circle>
+                          <path 
+                            className="opacity-75" 
+                            fill="currentColor" 
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        <span className="text-sm">Starting...</span>
+                      </div>
                     ) : isFormValid ? (
                       <>
-                        <Check className="mr-2 h-5 w-5" />
-                        Start Inspection
-                        <ChevronRight className="ml-1 h-5 w-5" />
+                        <Check className="mr-1 h-4 w-4" />
+                        <span className="text-sm">Start Inspection</span>
+                        <ChevronRight className="ml-1 h-4 w-4" />
                       </>
                     ) : (
-                      "Complete form to continue"
+                      <span className="text-xs sm:text-sm">Complete form</span>
                     )}
                   </motion.button>
                 </motion.div>
