@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import { LogOut, Home, QrCode, Menu, X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -86,23 +86,17 @@ export default function AdminLayout() {
       {/* Admin Header */}
       <header className={`sticky top-0 z-10 transition-all duration-500 ${scrolled ? 'shadow-md py-1.5 bg-white/95 backdrop-blur-sm' : 'py-2 bg-white'} border-b border-slate-200`}>
         <div className="w-full max-w-screen-xl mx-auto px-2 md:px-4 flex items-center justify-between">
-          <div 
-            className="flex items-center gap-2 cursor-pointer" 
-            onClick={() => navigate('/admin')}
-            title="Go to Dashboard"
-          >
-            <div className="relative">
+          <div className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <img 
                 src="/icon.png" 
                 alt="SafeWalk Logo" 
-                className="h-6 w-6 md:h-8 md:w-8 object-contain"
+                className="h-8 w-8 object-contain"
               />
-              <div className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 md:w-2 md:h-2 bg-green-400 rounded-full border-2 border-white"></div>
-            </div>
-            <h1 className="text-base md:text-lg font-bold bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent">
-              <span className="hidden sm:inline">SafeWalk Admin</span>
-              <span className="sm:hidden">SafeWalk</span>
-            </h1>
+              <span className="font-semibold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                SafeWalk
+              </span>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
