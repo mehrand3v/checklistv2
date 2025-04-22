@@ -2,13 +2,12 @@
 import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LockKeyhole, Menu, X } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "sonner";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
-// Add this style to disable pull-to-refresh
+// Disable pull-to-refresh
 const disablePullToRefreshStyle = `
   html, body {
     overscroll-behavior-y: none;
@@ -20,7 +19,6 @@ const disablePullToRefreshStyle = `
 export default function RootLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [showAdminLink, setShowAdminLink] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   // Check if device is mobile
@@ -50,11 +48,6 @@ export default function RootLayout() {
     };
   }, []);
 
-  // Toggle admin link visibility
-  const toggleAdminLink = () => {
-    setShowAdminLink((prev) => !prev);
-  };
-
   // Navigate to admin login
   const goToAdminLogin = () => {
     navigate("/admin/login");
@@ -64,63 +57,89 @@ export default function RootLayout() {
   const isAdminPage = location.pathname.startsWith("/admin");
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-slate-100/50 to-slate-200/30 dark:from-slate-900 dark:via-slate-800/50 dark:to-slate-700/30">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-slate-200/80 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-slate-900/80">
-        <div className="container py-4 px-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img 
+      <motion.header 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="sticky top-0 z-50 border-b border-blue-100 bg-white/90 backdrop-blur-md shadow-sm"
+      >
+        <div className="container mx-auto py-4 px-4 flex items-center justify-between">
+          <motion.div 
+            className="flex items-center gap-3"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <motion.img 
               src="/icon.png" 
               alt="SafeWalk Logo" 
-              className="h-8 w-8 object-contain"
+              className="h-9 w-9 object-contain"
+              whileHover={{ rotate: 10 }}
+              transition={{ duration: 0.2 }}
             />
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">SafeWalk</h1>
-          </div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              SafeWalk
+            </h1>
+          </motion.div>
           
-          {/* Mobile menu button */}
-          {isMobile && !isAdminPage && (
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-slate-100/80 dark:hover:bg-slate-800/80">
-                  <Menu className="h-5 w-5 text-slate-700 dark:text-slate-300" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="bg-white/95 dark:bg-slate-900/95 border-slate-200/80 dark:border-slate-700/80 backdrop-blur">
-                <div className="flex flex-col gap-4 py-4">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start hover:bg-slate-100/80 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300"
-                    onClick={goToAdminLogin}
-                  >
-                    <LockKeyhole className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    Admin Login
-                  </Button>
-                </div>
-              </SheetContent>
-            </Sheet>
-          )}
-          
-          {/* Desktop admin link */}
-          {!isMobile && !isAdminPage && (
-            <Button
-              variant="ghost"
-              className="hover:bg-slate-100/80 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300"
-              onClick={goToAdminLogin}
+          {/* Admin Button (Enhanced Icon) */}
+          {!isAdminPage && (
+            <motion.div
+              whileHover={{ 
+                scale: 1.1,
+                rotate: [0, -5, 5, -5, 0],
+                transition: { duration: 0.5 }
+              }}
+              whileTap={{ 
+                scale: 0.9,
+                rotate: 0
+              }}
             >
-              <LockKeyhole className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
-              Admin Login
-            </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-full w-12 h-12 flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300"
+                onClick={goToAdminLogin}
+                aria-label="Admin Login"
+              >
+                <motion.div
+                  whileHover={{ 
+                    y: [0, -2, 0, -2, 0],
+                    transition: { repeat: Infinity, repeatType: "mirror", duration: 1.5 }
+                  }}
+                >
+                  <LockKeyhole className="h-6 w-6 text-blue-600" />
+                </motion.div>
+              </Button>
+            </motion.div>
           )}
         </div>
-      </header>
+      </motion.header>
 
       {/* Main Content */}
-      <main className="flex-1 container mx-auto px-4 py-6">
+      <motion.main 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="flex-1 container mx-auto px-4 py-8"
+      >
         <Outlet />
-      </main>
+      </motion.main>
 
       {/* Toast Container */}
-      <Toaster position="top-center" />
+      <Toaster 
+        position="top-center" 
+        toastOptions={{
+          style: {
+            background: 'white',
+            color: '#333',
+            border: '1px solid rgba(229, 231, 235, 0.8)',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+          },
+        }}
+      />
     </div>
   );
 }
