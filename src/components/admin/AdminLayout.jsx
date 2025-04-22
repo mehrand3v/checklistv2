@@ -65,7 +65,7 @@ export default function AdminLayout() {
   const navItems = [
     {
       id: "dashboard",
-      label: "Dashboard",
+      label: "Home",  // Changed from "Dashboard" to "Home"
       icon: <Home className="h-5 w-5" />,
       onClick: () => {
         navigate("/");
@@ -101,10 +101,10 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-100">
       {/* Admin Header */}
-      <header className={`sticky top-0 z-10 transition-all duration-500 ${scrolled ? 'shadow-lg py-2 bg-white/95 backdrop-blur-sm' : 'py-2 sm:py-4 bg-white'} border-b border-slate-200`}>
-        <div className="container mx-auto px-3 sm:px-4 flex items-center justify-between">
+      <header className={`sticky top-0 z-10 transition-all duration-500 ${scrolled ? 'shadow-lg py-2 bg-white/95 backdrop-blur-sm' : 'py-3 md:py-4 bg-white'} border-b border-slate-200`}>
+        <div className="w-full max-w-screen-xl mx-auto px-3 md:px-4 flex items-center justify-between">
           <div 
-            className="flex items-center gap-2 sm:gap-3 cursor-pointer" 
+            className="flex items-center gap-2 md:gap-3 cursor-pointer" 
             onClick={() => navigate('/admin')}
             title="Go to Dashboard"
           >
@@ -112,11 +112,11 @@ export default function AdminLayout() {
               <img 
                 src="/icon.png" 
                 alt="SafeWalk Logo" 
-                className="h-8 w-8 sm:h-10 sm:w-10 object-contain transform transition-transform hover:scale-105"
+                className="h-8 w-8 md:h-10 md:w-10 object-contain transform transition-transform hover:scale-105"
               />
-              <div className="absolute -bottom-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full border-2 border-white pulse-animation"></div>
+              <div className="absolute -bottom-1 -right-1 w-2 md:w-3 h-2 md:h-3 bg-green-400 rounded-full border-2 border-white pulse-animation"></div>
             </div>
-            <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent transition-all">
+            <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent transition-all">
               <span className="hidden sm:inline">SafeWalk Admin</span>
               <span className="sm:hidden">SafeWalk</span>
             </h1>
@@ -131,12 +131,12 @@ export default function AdminLayout() {
                   {currentUser.email}
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   {navItems.map((item) => (
                     <button
                       key={item.id}
                       onClick={item.onClick}
-                      className={`group flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 font-medium ${item.id === activePage ? item.activeColor : item.baseColor} ${item.id !== activePage ? item.hoverColor : ''} transform hover:scale-105 shadow-sm hover:shadow-md`}
+                      className={`group flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full transition-all duration-300 font-medium ${item.id === activePage ? item.activeColor : item.baseColor} ${item.id !== activePage ? item.hoverColor : ''} transform hover:scale-105 shadow-sm hover:shadow-md`}
                     >
                       <span className="transition-all">{item.icon}</span>
                       <span className="transition-all">{item.label}</span>
@@ -150,10 +150,12 @@ export default function AdminLayout() {
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile menu button - Fixed centering */}
           <button 
-            className="md:hidden p-1.5 bg-slate-200 rounded-full hover:bg-slate-300 transition-all transform hover:scale-105 active:scale-95"
+            className="md:hidden flex items-center justify-center p-2 bg-slate-200 rounded-full hover:bg-slate-300 transition-all transform hover:scale-105 active:scale-95"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+            style={{ width: '36px', height: '36px' }}
           >
             {mobileMenuOpen ? (
               <X className="h-5 w-5 text-slate-700" />
@@ -164,31 +166,32 @@ export default function AdminLayout() {
         </div>
 
         {/* Mobile Navigation Menu */}
-        <div className={`md:hidden transition-all duration-300 overflow-hidden ${mobileMenuOpen ? 'max-h-[calc(100vh-4rem)] opacity-100 scale-y-100' : 'max-h-0 opacity-0 scale-y-95'} origin-top`}>
-          <div className="container mx-auto px-3 py-3 space-y-2">
+        <div className={`md:hidden transition-all duration-300 overflow-hidden ${mobileMenuOpen ? 'max-h-96 opacity-100 scale-y-100' : 'max-h-0 opacity-0 scale-y-95'} origin-top`}>
+          <div className="w-full max-w-screen-xl mx-auto px-3 py-3 space-y-2">
             {currentUser && (
               <>
-                <div className="p-2 bg-slate-200 rounded-lg flex items-center gap-2">
+                <div className="p-2.5 bg-slate-200 rounded-lg flex items-center gap-2">
                   <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>
                   <span className="text-sm font-medium text-slate-700 truncate">{currentUser.email}</span>
                 </div>
                 
-                <div className="flex flex-col gap-1.5">
-                  {navItems.map((item) => (
+                <div className="flex flex-col gap-2">
+                  {navItems.map((item, index) => (
                     <button
                       key={item.id}
                       onClick={() => {
                         item.onClick();
                         setMobileMenuOpen(false);
                       }}
-                      className={`flex items-center justify-between p-2 rounded-lg transition-all duration-300 ${item.id === activePage ? item.activeColor : item.baseColor} ${item.id !== activePage ? item.hoverColor : ''}`}
+                      className={`flex items-center justify-between p-3 rounded-lg transition-all duration-300 ${item.id === activePage ? item.activeColor : item.baseColor} ${item.id !== activePage ? item.hoverColor : ''} animate-slideUpIn`}
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div className="flex items-center gap-3">
                         <span>{item.icon}</span>
                         <span className="font-medium">{item.label}</span>
                       </div>
                       {item.id !== "logout" && (
-                        <ChevronRight className={`h-4 w-4 transition-all duration-300 ${item.id === activePage ? 'opacity-100' : 'opacity-50'}`} />
+                        <ChevronRight className={`h-5 w-5 transition-all duration-300 ${item.id === activePage ? 'opacity-100' : 'opacity-50'}`} />
                       )}
                     </button>
                   ))}
@@ -200,18 +203,18 @@ export default function AdminLayout() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <main className="flex-1 w-full max-w-screen-xl mx-auto px-3 md:px-6 py-4 md:py-6">
         <PageWrapper>
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 animate-fadeIn">
+          <div className="bg-white rounded-lg shadow-md p-4 md:p-6 animate-fadeIn">
             <Outlet />
           </div>
         </PageWrapper>
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-3 sm:py-4 mt-4 sm:mt-6">
-        <div className="container mx-auto px-3 sm:px-4 text-center">
-          <p className="text-xs sm:text-sm font-medium text-slate-600 flex items-center justify-center gap-1">
+      <footer className="bg-white border-t border-slate-200 py-3 md:py-4 mt-4 md:mt-6">
+        <div className="w-full max-w-screen-xl mx-auto px-3 md:px-4 text-center">
+          <p className="text-xs md:text-sm font-medium text-slate-600 flex items-center justify-center gap-1">
             <span>© {new Date().getFullYear()} SafeWalk Admin Portal</span>
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>
             <span>Online</span>
@@ -239,8 +242,11 @@ export default function AdminLayout() {
         
         /* Add slide up animation for mobile menu items */
         @keyframes slideUpIn {
-          from { opacity: 0; transform: translateY(20px); }
+          from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slideUpIn {
+          animation: slideUpIn 0.3s ease-out forwards;
         }
       `}</style>
     </div>

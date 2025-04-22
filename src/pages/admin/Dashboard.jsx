@@ -884,50 +884,78 @@ export default function AdminDashboard() {
               }, 0)
             : 0;
 
-        // If there are no issues, show a simple status indicator
+        // If there are no issues, show a clickable status indicator
         if (issueCount === 0) {
           return (
-            <div className="inline-flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-xs text-green-700 dark:text-green-400 font-medium">All Clear</span>
-            </div>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Lighter confetti effect with mixed shapes
+                const defaults = {
+                  origin: { y: 0.6 }, // Start lower
+                  gravity: 0.5, // Lighter gravity
+                  startVelocity: 15, // Slower initial velocity
+                  spread: 70, // Narrower spread
+                  ticks: 200, // Shorter duration
+                  zIndex: 9999,
+                  scalar: 1, // Smaller base size
+                  shapes: ['circle', 'square'], // Mix of shapes
+                  colors: [
+                    '#4ADE80', // Light green
+                    '#60A5FA', // Light blue
+                    '#F472B6', // Light pink
+                    '#A78BFA', // Light purple
+                    '#FBBF24', // Light yellow
+                    '#FFFFFF'  // White for sparkle
+                  ]
+                };
+
+                // Fire a single burst of confetti
+                confetti({
+                  ...defaults,
+                  particleCount: 100, // Fewer particles
+                  spread: 70,
+                  origin: { y: 0.6 }
+                });
+              }}
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/20 dark:hover:bg-green-900/30 dark:text-green-400 dark:border-green-800 transition-all duration-200"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+              <span className="text-xs font-medium">All Clear</span>
+            </button>
           );
         }
 
         // Otherwise show fixed and not fixed counts with icons
         return (
-          <div className="flex items-center gap-1 whitespace-nowrap">
+          <div className="flex items-center gap-1.5 whitespace-nowrap">
             {fixedIssueCount > 0 && (
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                onClick={() => {
                   setSelectedInspection(row.original);
                   setIssueFilter('fixed');
                   setShowInspectionDetail(true);
-                  setShowNoIssuesDialog(false);
                 }}
-                className="inline-flex items-center px-1 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30 transition-all duration-200 text-xs font-medium"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30 transition-all duration-200 text-xs font-medium"
                 title={`${fixedIssueCount} fixed issues`}
               >
-                <CheckCircle className="h-3 w-3 mr-0.5" />
+                <CheckCircle className="h-3 w-3" />
                 {fixedIssueCount}
               </button>
             )}
             {(issueCount - fixedIssueCount) > 0 && (
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+                onClick={() => {
                   setSelectedInspection(row.original);
                   setIssueFilter('open');
                   setShowInspectionDetail(true);
-                  setShowNoIssuesDialog(false);
                 }}
-                className="inline-flex items-center px-1 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/30 transition-all duration-200 text-xs font-medium"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/30 transition-all duration-200 text-xs font-medium"
                 title={`${issueCount - fixedIssueCount} not fixed issues`}
               >
-                <AlertCircle className="h-3 w-3 mr-0.5" />
+                <AlertCircle className="h-3 w-3" />
                 {issueCount - fixedIssueCount}
               </button>
             )}
