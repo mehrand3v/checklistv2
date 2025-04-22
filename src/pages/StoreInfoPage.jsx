@@ -193,7 +193,7 @@ export default function StoreInfoPage() {
   type="tel"
   inputMode="numeric"
   pattern="[0-9]*"
-  placeholder="Store Number (7 digits)"
+  placeholder="Store # (7 digits)"
   value={storeNumber}
   onChange={(e) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, 7);
