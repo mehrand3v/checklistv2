@@ -884,17 +884,12 @@ export default function AdminDashboard() {
               }, 0)
             : 0;
 
-        // If there are no issues, show a simple badge
+        // If there are no issues, show a simple status indicator
         if (issueCount === 0) {
           return (
-            <div 
-              className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200"
-              onClick={() => {
-                setSelectedInspection(row.original);
-                setShowNoIssuesDialog(true);
-              }}
-            >
-              <span className="text-xs font-medium">No issues</span>
+            <div className="inline-flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <span className="text-xs text-green-700 dark:text-green-400 font-medium">All Clear</span>
             </div>
           );
         }
@@ -902,30 +897,40 @@ export default function AdminDashboard() {
         // Otherwise show fixed and not fixed counts with icons
         return (
           <div className="flex items-center gap-1 whitespace-nowrap">
-            <button
-              onClick={() => {
-                setSelectedInspection(row.original);
-                setIssueFilter('fixed');
-                setShowInspectionDetail(true);
-              }}
-              className="inline-flex items-center px-1 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30 transition-all duration-200 text-xs font-medium"
-              title={`${fixedIssueCount} fixed issues`}
-            >
-              <CheckCircle className="h-3 w-3 mr-0.5" />
-              {fixedIssueCount}
-            </button>
-            <button
-              onClick={() => {
-                setSelectedInspection(row.original);
-                setIssueFilter('open');
-                setShowInspectionDetail(true);
-              }}
-              className="inline-flex items-center px-1 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/30 transition-all duration-200 text-xs font-medium"
-              title={`${issueCount - fixedIssueCount} not fixed issues`}
-            >
-              <AlertCircle className="h-3 w-3 mr-0.5" />
-              {issueCount - fixedIssueCount}
-            </button>
+            {fixedIssueCount > 0 && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSelectedInspection(row.original);
+                  setIssueFilter('fixed');
+                  setShowInspectionDetail(true);
+                  setShowNoIssuesDialog(false);
+                }}
+                className="inline-flex items-center px-1 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30 transition-all duration-200 text-xs font-medium"
+                title={`${fixedIssueCount} fixed issues`}
+              >
+                <CheckCircle className="h-3 w-3 mr-0.5" />
+                {fixedIssueCount}
+              </button>
+            )}
+            {(issueCount - fixedIssueCount) > 0 && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSelectedInspection(row.original);
+                  setIssueFilter('open');
+                  setShowInspectionDetail(true);
+                  setShowNoIssuesDialog(false);
+                }}
+                className="inline-flex items-center px-1 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/30 transition-all duration-200 text-xs font-medium"
+                title={`${issueCount - fixedIssueCount} not fixed issues`}
+              >
+                <AlertCircle className="h-3 w-3 mr-0.5" />
+                {issueCount - fixedIssueCount}
+              </button>
+            )}
           </div>
         );
       },
@@ -937,8 +942,11 @@ export default function AdminDashboard() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => {
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
             setSelectedInspection(row.original);
+            setShowNoIssuesDialog(false);
             setShowInspectionDetail(true);
           }}
           className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
