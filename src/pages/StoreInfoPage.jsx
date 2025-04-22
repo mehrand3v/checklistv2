@@ -188,20 +188,20 @@ export default function StoreInfoPage() {
                       whileTap="focus"
                       variants={inputVariants}
                     >
-                      <Input
-                        id="storeNumber"
-                        type="tel"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        placeholder="Store Number (7 digits)"
-                        value={storeNumber}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 7);
-                          setStoreNumber(value);
-                        }}
-                        className="pl-10 pr-12 h-12 rounded-xl border-2 border-blue-100 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 shadow-sm focus:shadow-md"
-                        maxLength={7}
-                      />
+<Input
+  id="storeNumber"
+  type="tel"
+  inputMode="numeric"
+  pattern="[0-9]*"
+  placeholder="Store Number (7 digits)"
+  value={storeNumber}
+  onChange={(e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 7);
+    setStoreNumber(value);
+  }}
+  className="pl-12 md:pl-14 pr-8 md:pr-12 h-10 md:h-12 text-sm md:text-base rounded-xl border-2 border-blue-100 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 shadow-sm focus:shadow-md"
+  maxLength={7}
+/>
                       <Store className="absolute left-3 top-3 h-6 w-6 text-blue-500" />
                       <AnimatePresence>
                         {storeNumber.length === 7 && /^\d{7}$/.test(storeNumber) && (
@@ -246,14 +246,14 @@ export default function StoreInfoPage() {
                       whileTap="focus"
                       variants={inputVariants}
                     >
-                      <Input
-                        id="inspectorName"
-                        type="text"
-                        placeholder="Your Name"
-                        value={inspectorName}
-                        onChange={(e) => setInspectorName(e.target.value)}
-                        className="pl-10 h-12 rounded-xl border-2 border-blue-100 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 shadow-sm focus:shadow-md"
-                      />
+                   <Input
+  id="inspectorName"
+  type="text"
+  placeholder="Your Name"
+  value={inspectorName}
+  onChange={(e) => setInspectorName(e.target.value)}
+  className="pl-12 md:pl-14 pr-8 md:pr-12 h-10 md:h-12 text-sm md:text-base rounded-xl border-2 border-blue-100 focus:border-blue-500 focus:ring-blue-500 transition-all duration-300 shadow-sm focus:shadow-md"
+/>
                       <User className="absolute left-3 top-3 h-6 w-6 text-blue-500" />
                     </motion.div>
                   </motion.div>
