@@ -26,21 +26,21 @@ export default function RootLayout() {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     // Add meta tag to disable pull-to-refresh
     const metaTag = document.createElement('meta');
     metaTag.name = 'viewport';
     metaTag.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
     document.head.appendChild(metaTag);
-    
+
     // Add style to disable pull-to-refresh
     const styleElement = document.createElement('style');
     styleElement.textContent = disablePullToRefreshStyle;
     document.head.appendChild(styleElement);
-    
+
     return () => {
       window.removeEventListener('resize', checkMobile);
       document.head.removeChild(metaTag);
@@ -59,7 +59,7 @@ export default function RootLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50">
       {/* Header */}
-      <motion.header 
+      <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.3 }}
@@ -68,9 +68,9 @@ export default function RootLayout() {
         <div className="container mx-auto py-4 px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <img 
-                src="/icon.png" 
-                alt="SafeWalk Logo" 
+              <img
+                src="/icon.png"
+                alt="SafeWalk Logo"
                 className="h-8 w-8 object-contain"
               />
               <span className="font-semibold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -78,16 +78,16 @@ export default function RootLayout() {
               </span>
             </Link>
           </div>
-          
+
           {/* Admin Button (Enhanced Icon) */}
           {!isAdminPage && (
             <motion.div
-              whileHover={{ 
+              whileHover={{
                 scale: 1.1,
                 rotate: [0, -5, 5, -5, 0],
                 transition: { duration: 0.5 }
               }}
-              whileTap={{ 
+              whileTap={{
                 scale: 0.9,
                 rotate: 0
               }}
@@ -100,7 +100,7 @@ export default function RootLayout() {
                 aria-label="Admin Login"
               >
                 <motion.div
-                  whileHover={{ 
+                  whileHover={{
                     y: [0, -2, 0, -2, 0],
                     transition: { repeat: Infinity, repeatType: "mirror", duration: 1.5 }
                   }}
@@ -114,7 +114,7 @@ export default function RootLayout() {
       </motion.header>
 
       {/* Main Content */}
-      <motion.main 
+      <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -124,8 +124,8 @@ export default function RootLayout() {
       </motion.main>
 
       {/* Toast Container */}
-      <Toaster 
-        position="top-center" 
+      <Toaster
+        position="top-center"
         toastOptions={{
           style: {
             background: 'white',

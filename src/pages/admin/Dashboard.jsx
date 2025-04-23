@@ -82,36 +82,36 @@ import { Label } from "@/components/ui/label";
 // Add this new component for the no issues celebration dialog
 function NoIssuesDialog({ inspection, open, onOpenChange }) {
   const [showConfetti, setShowConfetti] = useState(false);
-  
+
   // Trigger confetti when dialog opens
   useEffect(() => {
     if (open) {
       setShowConfetti(true);
-      
+
       // Trigger confetti animation with more intensity
       const duration = 5 * 1000; // Longer duration
       const animationEnd = Date.now() + duration;
-      const defaults = { 
-        startVelocity: 30, 
-        spread: 360, 
-        ticks: 60, 
+      const defaults = {
+        startVelocity: 30,
+        spread: 360,
+        ticks: 60,
         zIndex: 99999, // Much higher z-index to ensure it appears on top of everything
         disableForReducedMotion: false // Ensure it works even with reduced motion settings
       };
-      
+
       function randomInRange(min, max) {
         return Math.random() * (max - min) + min;
       }
-      
+
       const interval = setInterval(function() {
         const timeLeft = animationEnd - Date.now();
-        
+
         if (timeLeft <= 0) {
           return clearInterval(interval);
         }
-        
+
         const particleCount = 100 * (timeLeft / duration); // More particles
-        
+
         // Confetti from left side
         confetti({
           ...defaults,
@@ -119,7 +119,7 @@ function NoIssuesDialog({ inspection, open, onOpenChange }) {
           origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
           colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
         });
-        
+
         // Confetti from right side
         confetti({
           ...defaults,
@@ -127,7 +127,7 @@ function NoIssuesDialog({ inspection, open, onOpenChange }) {
           origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
           colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
         });
-        
+
         // Add confetti from bottom for more coverage
         confetti({
           ...defaults,
@@ -138,12 +138,12 @@ function NoIssuesDialog({ inspection, open, onOpenChange }) {
           colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
         });
       }, 150); // More frequent bursts
-      
+
       // Clean up interval on unmount
       return () => clearInterval(interval);
     }
   }, [open]);
-  
+
   // Random positive messages
   const positiveMessages = [
     "Perfect inspection! Keep up the great work!",
@@ -155,17 +155,17 @@ function NoIssuesDialog({ inspection, open, onOpenChange }) {
     "This is what excellence looks like! Perfect score!",
     "Absolutely perfect! Nothing to improve here!"
   ];
-  
+
   const randomMessage = positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
         <DialogHeader>
           <div className="flex items-center justify-center gap-2">
-            <img 
-              src="/icon.png" 
-              alt="SafeWalk Logo" 
+            <img
+              src="/icon.png"
+              alt="SafeWalk Logo"
               className="h-6 w-6 object-contain"
             />
             <DialogTitle className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -206,12 +206,12 @@ function NoIssuesDialog({ inspection, open, onOpenChange }) {
 }
 
 // Update the component definition to accept additional props
-function InspectionDetailDialog({ 
-  inspection, 
-  open, 
-  onOpenChange, 
-  issueFilter, 
-  canEdit, 
+function InspectionDetailDialog({
+  inspection,
+  open,
+  onOpenChange,
+  issueFilter,
+  canEdit,
   canDelete,
   onEdit,
   onDelete,
@@ -239,12 +239,12 @@ function InspectionDetailDialog({
   // Format submission date and time
   const formatSubmissionDateTime = () => {
     if (!inspection.submittedAt) return null;
-    
+
     const submittedDate = new Date(inspection.submittedAt);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     // Format the submission date
     let dateDisplay;
     if (submittedDate.toDateString() === today.toDateString()) {
@@ -257,13 +257,13 @@ function InspectionDetailDialog({
         day: "numeric",
       });
     }
-    
+
     // Add time
     const timeDisplay = submittedDate.toLocaleTimeString(undefined, {
       hour: "2-digit",
       minute: "2-digit",
     });
-    
+
     return `${dateDisplay} at ${timeDisplay}`;
   };
 
@@ -273,9 +273,9 @@ function InspectionDetailDialog({
         <DialogHeader className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img 
-                src="/icon.png" 
-                alt="SafeWalk Logo" 
+              <img
+                src="/icon.png"
+                alt="SafeWalk Logo"
                 className="h-6 w-6 object-contain"
               />
               <DialogTitle className="text-lg text-foreground">
@@ -365,19 +365,19 @@ function InspectionDetailDialog({
                       <div
                         key={item.id}
                         className={`flex items-start justify-between p-2 rounded ${
-                          item.status === "yes" 
-                            ? "bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800" 
-                            : item.fixed 
-                              ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800" 
+                          item.status === "yes"
+                            ? "bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800"
+                            : item.fixed
+                              ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800"
                               : "bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800"
                         }`}
                       >
                         <div className="flex-1">
                           <p className={`font-medium text-sm ${
-                            item.status === "yes" 
-                              ? "text-green-900 dark:text-green-100" 
-                              : item.fixed 
-                                ? "text-blue-900 dark:text-blue-100" 
+                            item.status === "yes"
+                              ? "text-green-900 dark:text-green-100"
+                              : item.fixed
+                                ? "text-blue-900 dark:text-blue-100"
                                 : "text-red-900 dark:text-red-100"
                           }`}>{item.description}</p>
                           {item.notes && (
@@ -426,7 +426,7 @@ function InspectionDetailDialog({
 const generatePDF = async (inspections) => {
   try {
     console.log("Starting PDF generation with data:", inspections);
-    
+
     // Create PDF document
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -436,18 +436,18 @@ const generatePDF = async (inspections) => {
 
     // Set font
     pdf.setFont("helvetica");
-    
+
     // Add title
     pdf.setFontSize(20);
     pdf.text("Inspection Reports", 105, 20, { align: "center" });
-    
+
     pdf.setFontSize(12);
     pdf.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 30, { align: "center" });
-    
+
     // Process each inspection
     const inspectionsArray = Array.isArray(inspections) ? inspections : [inspections];
     let yOffset = 40; // Start position for content
-    
+
     // Helper function to wrap text
     const wrapText = (text, maxWidth) => {
       if (!text) return [];
@@ -477,34 +477,34 @@ const generatePDF = async (inspections) => {
       });
       return lines.length * lineHeight;
     };
-    
+
     inspectionsArray.forEach((inspection, index) => {
       // Check if we need a new page
       if (yOffset > 250) {
         pdf.addPage();
         yOffset = 20;
       }
-      
+
       // Add inspection header
       pdf.setFontSize(16);
       pdf.text(`Inspection #${index + 1}`, 20, yOffset);
       yOffset += 10;
-      
+
       // Add inspection details
       pdf.setFontSize(12);
       pdf.setFillColor(248, 249, 250);
       pdf.rect(20, yOffset, 170, 25, "F");
-      
+
       // Store info
       pdf.text(`Store Number: ${inspection.storeNumber || 'N/A'}`, 25, yOffset + 7);
       pdf.text(`Inspector: ${inspection.inspectedBy || 'N/A'}`, 25, yOffset + 15);
-      
+
       // Date info
       pdf.text(`Date: ${inspection.inspectionDate ? new Date(inspection.inspectionDate).toLocaleDateString() : 'N/A'}`, 110, yOffset + 7);
       pdf.text(`Status: Submitted`, 110, yOffset + 15);
-      
+
       yOffset += 35;
-      
+
       // Add categories
       inspection.categories?.forEach(category => {
         // Check if we need a new page
@@ -512,14 +512,14 @@ const generatePDF = async (inspections) => {
           pdf.addPage();
           yOffset = 20;
         }
-        
+
         // Category title
         pdf.setFontSize(14);
         pdf.setDrawColor(51, 51, 51);
         pdf.line(20, yOffset, 190, yOffset);
         pdf.text(category.title, 20, yOffset - 5);
         yOffset += 15;
-        
+
         // Category items
         category.items?.forEach(item => {
           // Check if we need a new page
@@ -527,34 +527,34 @@ const generatePDF = async (inspections) => {
             pdf.addPage();
             yOffset = 20;
           }
-          
+
           // Calculate height needed for content
           const descriptionLines = wrapText(item.description, 150);
           const notesLines = item.notes ? wrapText(item.notes, 150) : [];
           const totalHeight = Math.max(20, (descriptionLines.length + notesLines.length + 1) * 5);
-          
+
           // Item box
           pdf.setFontSize(11);
           const itemColor = item.status === 'yes' ? [240, 255, 244] : item.fixed ? [240, 247, 255] : [255, 240, 240];
           pdf.setFillColor(...itemColor);
           pdf.rect(20, yOffset, 170, totalHeight, "F");
-          
+
           // Item content
           pdf.setTextColor(0, 0, 0);
           let currentY = yOffset + 7;
-          
+
           // Description
           descriptionLines.forEach((line, i) => {
             pdf.text(line, 25, currentY);
             currentY += 5;
           });
-          
+
           // Status
           const statusText = item.status === 'yes' ? 'Pass' : item.fixed ? 'Fixed' : 'Fail';
           const statusColor = item.status === 'yes' ? [0, 128, 0] : item.fixed ? [0, 0, 255] : [255, 0, 0];
           pdf.setTextColor(...statusColor);
           pdf.text(`Status: ${statusText}`, 25, currentY);
-          
+
           // Notes
           if (item.notes) {
             currentY += 5;
@@ -565,21 +565,21 @@ const generatePDF = async (inspections) => {
               currentY += 5;
             });
           }
-          
+
           pdf.setTextColor(0, 0, 0);
           yOffset += totalHeight + 5;
         });
-        
+
         yOffset += 10;
       });
-      
+
       // Add page break after each inspection
       if (index < inspectionsArray.length - 1) {
         pdf.addPage();
         yOffset = 20;
       }
     });
-    
+
     // Save the PDF
     pdf.save(`inspections-${new Date().toISOString().split('T')[0]}.pdf`);
     toast.success("PDF downloaded successfully");
@@ -601,12 +601,12 @@ export default function AdminDashboard() {
   const [uniqueStores, setUniqueStores] = useState([]);
   const [showStoreOverview, setShowStoreOverview] = useState(false);
   const [issueFilter, setIssueFilter] = useState(null);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-  
+
   // Delete dialog state
   const [inspectionToDelete, setInspectionToDelete] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -619,7 +619,7 @@ export default function AdminDashboard() {
   // Add state for inspection detail dialog
   const [selectedInspection, setSelectedInspection] = useState(null);
   const [showInspectionDetail, setShowInspectionDetail] = useState(false);
-  
+
   // Add state for no issues dialog
   const [showNoIssuesDialog, setShowNoIssuesDialog] = useState(false);
 
@@ -664,10 +664,10 @@ export default function AdminDashboard() {
     const stats = {};
     uniqueStores.forEach(storeNumber => {
       const storeInspections = inspections.filter(i => i?.storeNumber === storeNumber);
-      
+
       stats[storeNumber] = {
         totalInspections: storeInspections.length,
-        lastInspection: storeInspections.length > 0 
+        lastInspection: storeInspections.length > 0
           ? new Date(Math.max(...storeInspections.map(i => new Date(i.inspectionDate || i.clientDate))))
           : null,
       };
@@ -706,7 +706,7 @@ export default function AdminDashboard() {
     const filteredData = getFilteredData(filteredInspections);
     const newTotalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
     setTotalPages(newTotalPages);
-    
+
     // Reset to first page if current page is out of bounds
     if (currentPage > newTotalPages) {
       setCurrentPage(1);
@@ -716,15 +716,15 @@ export default function AdminDashboard() {
   // Handle delete inspection
   const handleDeleteInspection = async () => {
     if (!inspectionToDelete) return;
-    
+
     try {
       setDeleteLoading(true);
       const result = await deleteInspection(inspectionToDelete.id);
-      
+
       if (result.success) {
         // Remove the inspection from state
         setInspections(prev => prev.filter(i => i.id !== inspectionToDelete.id));
-        
+
         toast.success("Inspection deleted successfully");
       } else {
         toast.error("Failed to delete inspection: " + result.error);
@@ -751,12 +751,12 @@ export default function AdminDashboard() {
       // Update the local state
       setInspections((prev) =>
         prev.map((inspection) =>
-          inspection.id === updatedInspection.id 
+          inspection.id === updatedInspection.id
             ? { ...updatedInspection, status: 'submitted' }
             : inspection
         )
       );
-      
+
       // Refresh the inspections list from the server
       const inspectionsResult = await getAllInspections();
       if (inspectionsResult.success) {
@@ -797,23 +797,23 @@ export default function AdminDashboard() {
       cell: ({ row }) => {
         const date = row.original?.inspectionDate || row.original?.clientDate;
         if (!date) return <div>N/A</div>;
-        
+
         const inspectionDate = new Date(date);
         const today = new Date();
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
-        
+
         // Format the date with year in compact format
         let dateDisplay = inspectionDate.toLocaleDateString(undefined, {
           month: "numeric",
           day: "numeric",
           year: "2-digit"
         });
-        
+
         // Add relative time indicator with special styling
         let timeIndicator = "";
         let timeIndicatorClass = "";
-        
+
         if (inspectionDate.toDateString() === today.toDateString()) {
           timeIndicator = " (Today)";
           timeIndicatorClass = "text-amber-600 dark:text-amber-400 text-xs";
@@ -827,7 +827,7 @@ export default function AdminDashboard() {
             timeIndicatorClass = "text-teal-600 dark:text-teal-400 text-xs";
           }
         }
-        
+
         return (
           <div className="font-medium text-green-700 dark:text-green-300 text-sm">
             {dateDisplay}
@@ -892,7 +892,7 @@ export default function AdminDashboard() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 const defaults = {
                   origin: { y: 0.6 },
                   gravity: 0.5,
@@ -1080,21 +1080,21 @@ export default function AdminDashboard() {
     const data = filteredInspections;
     const filteredData = getFilteredData(data);
     const totalItems = filteredData.length;
-    
+
     if (totalItems === 0) return null;
-    
+
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     // Calculate range of pages to show
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    
+
     // Adjust start if we're near the end
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
-    
+
     return (
       <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0 sm:space-x-2">
         <div className="flex items-center space-x-2">
@@ -1118,7 +1118,7 @@ export default function AdminDashboard() {
             {`${Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}-${Math.min(currentPage * itemsPerPage, totalItems)} of ${totalItems}`}
           </span>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
@@ -1129,7 +1129,7 @@ export default function AdminDashboard() {
           >
             <ChevronsLeft className="h-4 w-4 text-blue-500" />
           </Button>
-          
+
           <Button
             variant="outline"
             size="icon"
@@ -1139,7 +1139,7 @@ export default function AdminDashboard() {
           >
             <ChevronLeft className="h-4 w-4 text-blue-500" />
           </Button>
-          
+
           {/* Page numbers */}
           {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((page) => (
             <Button
@@ -1151,7 +1151,7 @@ export default function AdminDashboard() {
               {page}
             </Button>
           ))}
-          
+
           {/* Last page */}
           {endPage < totalPages && (
             <>
@@ -1164,7 +1164,7 @@ export default function AdminDashboard() {
               </Button>
             </>
           )}
-          
+
           <Button
             variant="outline"
             size="icon"
@@ -1174,7 +1174,7 @@ export default function AdminDashboard() {
           >
             <ChevronsRight className="h-4 w-4 text-blue-500" />
           </Button>
-          
+
           <Button
             variant="outline"
             size="icon"
@@ -1192,7 +1192,7 @@ export default function AdminDashboard() {
   // Validate form
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Store number validation (1-7 digits)
     if (!storeNumber) {
       newErrors.storeNumber = "Store number is required";
@@ -1233,7 +1233,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/80 via-indigo-50/50 to-purple-50/80 dark:from-blue-950/20 dark:via-indigo-950/10 dark:to-purple-950/20">
-      <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto py-8 px-1 sm:px-2 lg:px-6">
         <h1 className="text-lg font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
           Dashboard
         </h1>
@@ -1241,8 +1241,8 @@ export default function AdminDashboard() {
         {/* Store Filter - Expandable */}
         <div className="mb-6">
           <Card>
-            <CardHeader 
-              className="pb-2 cursor-pointer" 
+            <CardHeader
+              className="pb-2 cursor-pointer"
               onClick={() => setShowStoreOverview(!showStoreOverview)}
             >
               <div className="flex items-center justify-between">
@@ -1340,15 +1340,15 @@ export default function AdminDashboard() {
             onValueChange={setActiveTab}
           >
             <TabsList className="mb-6">
-              <TabsTrigger 
-                value="inspections" 
+              <TabsTrigger
+                value="inspections"
                 className="flex items-center gap-2 data-[state=active]:bg-blue-100 dark:data-[state=active]:bg-blue-900/50 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300"
               >
                 <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 transition-transform duration-200 group-hover:scale-110" />
                 <span className="font-medium">Inspections</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="categories" 
+              <TabsTrigger
+                value="categories"
                 className="flex items-center gap-2 data-[state=active]:bg-purple-100 dark:data-[state=active]:bg-purple-900/50 data-[state=active]:text-purple-700 dark:data-[state=active]:text-purple-300"
               >
                 <Database className="h-5 w-5 text-purple-600 dark:text-purple-400 transition-transform duration-200 group-hover:scale-110" />
@@ -1425,9 +1425,9 @@ export default function AdminDashboard() {
                               columns={inspectionColumns}
                               data={getPaginatedData(filteredInspections)}
                               loading={loading}
-                              rowClassName={(rowIndex) => 
-                                rowIndex % 2 === 0 
-                                  ? "bg-white/50 hover:bg-sky-100/50 transition-colors duration-150" 
+                              rowClassName={(rowIndex) =>
+                                rowIndex % 2 === 0
+                                  ? "bg-white/50 hover:bg-sky-100/50 transition-colors duration-150"
                                   : "bg-white/30 hover:bg-purple-100/50 transition-colors duration-150"
                               }
                             />
@@ -1525,7 +1525,7 @@ export default function AdminDashboard() {
           }}
           onGeneratePDF={generatePDF}
         />
-        
+
         {/* No Issues Dialog */}
         <NoIssuesDialog
           inspection={selectedInspection}

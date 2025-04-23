@@ -2,18 +2,16 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Card({
-  className,
-  ...props
-}) {
+function Card({ className, ...props }) {
   return (
     <div
       data-slot="card"
       className={cn(
-        "bg-white/80 dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 flex flex-col gap-6 rounded-xl border border-blue-100/50 dark:border-blue-900/50 py-6 shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm",
+        "bg-white/80 dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 flex flex-col gap-3 md:gap-6 rounded-xl border border-blue-100/50 dark:border-blue-900/50 py-3 md:py-6 shadow-lg hover:shadow-xl transition-all duration-200 backdrop-blur-sm",
         className
       )}
-      {...props} />
+      {...props}
+    />
   );
 }
 
@@ -71,15 +69,15 @@ function CardAction({
   );
 }
 
-function CardContent({
-  className,
-  ...props
-}) {
+function CardContent({ className, ...props }) {
   return (
-    <div 
-      data-slot="card-content" 
-      className={cn("px-6 text-slate-700 dark:text-slate-300", className)} 
-      {...props} 
+    <div
+      data-slot="card-content"
+      className={cn(
+        "px-2 md:px-6 text-slate-700 dark:text-slate-300",
+        className
+      )}
+      {...props}
     />
   );
 }
