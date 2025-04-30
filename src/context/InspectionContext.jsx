@@ -60,23 +60,39 @@ export function InspectionProvider({ children }) {
     localStorage.setItem("csr_store_info", JSON.stringify(storeInfo));
   }, [storeInfo]);
 
-  // Calculate completion status for progress indicator
+  // Get completion status
   const getCompletionStatus = () => {
-    const totalItems = inspectionData.reduce(
-      (acc, category) => acc + category.items.length,
-      0
-    );
-    const completedItems = inspectionData.reduce((acc, category) => {
-      return acc + category.items.filter((item) => item.status !== null).length;
-    }, 0);
+    let totalItems = 0;
+    let completedItems = 0;
+    let issueCount = 0;
+    let naCount = 0;
+    let fixedCount = 0;
+
+    inspectionData.forEach((category) => {
+      category.items.forEach((item) => {
+        totalItems++;
+        if (item.status !== null) {
+          completedItems++;
+          if (item.status === "no") {
+            issueCount++;
+            if (item.fixed) {
+              fixedCount++;
+            }
+          } else if (item.status === "na") {
+            naCount++;
+          }
+        }
+      });
+    });
 
     return {
       totalItems,
       completedItems,
-      percentComplete: totalItems
-        ? Math.round((completedItems / totalItems) * 100)
-        : 0,
-      isComplete: completedItems === totalItems
+      issueCount,
+      naCount,
+      fixedCount,
+      isComplete: totalItems === completedItems,
+      percentComplete: totalItems ? Math.round((completedItems / totalItems) * 100) : 0,
     };
   };
 
@@ -113,7 +129,7 @@ export function InspectionProvider({ children }) {
     });
   };
 
-  // Get all issues (items with status = "no")
+  // Get all issues
   const getAllIssues = () => {
     const issues = [];
 

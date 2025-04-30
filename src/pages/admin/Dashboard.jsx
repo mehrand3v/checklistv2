@@ -232,6 +232,24 @@ function InspectionDetailDialog({
     })
   })).filter(category => category.items.length > 0);
 
+  const getStatusBadge = (status, fixed = false) => {
+    switch (status) {
+      case 'yes':
+        return <Badge className="bg-green-100 text-green-700">Yes</Badge>;
+      case 'no':
+        return (
+          <div className="flex items-center gap-1">
+            <Badge className="bg-red-100 text-red-700">No</Badge>
+            {fixed && <Badge variant="outline">Fixed</Badge>}
+          </div>
+        );
+      case 'na':
+        return <Badge className="bg-gray-100 text-gray-700">NA</Badge>;
+      default:
+        return null;
+    }
+  };
+
   const handleClose = () => {
     onOpenChange(false);
   };
@@ -550,8 +568,8 @@ const generatePDF = async (inspections) => {
           });
 
           // Status
-          const statusText = item.status === 'yes' ? 'Pass' : item.fixed ? 'Fixed' : 'Fail';
-          const statusColor = item.status === 'yes' ? [0, 128, 0] : item.fixed ? [0, 0, 255] : [255, 0, 0];
+          const statusText = item.status === 'yes' ? 'Pass' : item.status === 'na' ? 'NA' : item.fixed ? 'Fixed' : 'Fail';
+          const statusColor = item.status === 'yes' ? [0, 128, 0] : item.status === 'na' ? [128, 128, 128] : item.fixed ? [0, 0, 255] : [255, 0, 0];
           pdf.setTextColor(...statusColor);
           pdf.text(`Status: ${statusText}`, 25, currentY);
 
@@ -1022,38 +1040,36 @@ export default function AdminDashboard() {
                 }, 0)
               : 0;
 
+          const naCount =
+            item.categories && Array.isArray(item.categories)
+              ? item.categories.reduce((count, category) => {
+                  if (
+                    category &&
+                    category.items &&
+                    Array.isArray(category.items)
+                  ) {
+                    return (
+                      count +
+                      category.items.filter((i) => i && i.status === "na")
+                        .length
+                    );
+                  }
+                  return count;
+                }, 0)
+              : 0;
+
           const row = [
             item.storeNumber || "",
             item.inspectedBy ? `"${item.inspectedBy.replace(/"/g, '""')}"` : "",
             item.inspectionDate
-              ? new Date(item.inspectionDate).toLocaleString(undefined, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : item.clientDate
-              ? new Date(item.clientDate).toLocaleString(undefined, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "N/A",
-            issueCount,
+              ? new Date(item.inspectionDate).toLocaleDateString()
+              : "",
+            `${issueCount} issues${naCount > 0 ? `, ${naCount} NA` : ''}`,
             item.submittedAt
-              ? new Date(item.submittedAt).toLocaleString(undefined, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })
-              : "N/A",
-          ];
-          csvContent += row.join(",") + "\n";
+              ? new Date(item.submittedAt).toLocaleString()
+              : "",
+          ].join(",");
+          csvContent += row + "\n";
         });
       }
 

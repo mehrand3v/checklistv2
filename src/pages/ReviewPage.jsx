@@ -85,6 +85,39 @@ export default function ReviewPage() {
     return category.items.filter((item) => item.status === "no").length;
   };
 
+  // Get item status display
+  const getItemStatusDisplay = (status) => {
+    switch (status) {
+      case 'yes':
+        return (
+          <span className="flex items-center text-green-600">
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            Yes
+          </span>
+        );
+      case 'no':
+        return (
+          <span className="flex items-center text-red-600">
+            <AlertCircle className="h-4 w-4 mr-1" />
+            No
+          </span>
+        );
+      case 'na':
+        return (
+          <span className="flex items-center text-gray-600">
+            <span className="h-4 w-4 mr-1">-</span>
+            NA
+          </span>
+        );
+      default:
+        return (
+          <span className="text-xs text-muted-foreground">
+            Not checked
+          </span>
+        );
+    }
+  };
+
   // Animation variants
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
@@ -164,21 +197,8 @@ export default function ReviewPage() {
                               )}
                             </div>
                             <div className="flex items-center gap-2 ml-4">
-                              {item.status === "yes" ? (
-                                <div className="flex items-center gap-1 text-green-500">
-                                  <CheckCircle2 className="h-4 w-4" />
-                                  <span className="text-sm">Yes</span>
-                                </div>
-                              ) : item.status === "no" ? (
-                                <div className="flex items-center gap-1 text-red-500">
-                                  <AlertCircle className="h-4 w-4" />
-                                  <span className="text-sm">No</span>
-                                  {item.fixed && (
-                                    <Badge variant="outline" className="ml-1">
-                                      Fixed
-                                    </Badge>
-                                  )}
-                                </div>
+                              {item.status ? (
+                                getItemStatusDisplay(item.status)
                               ) : (
                                 <span className="text-xs text-muted-foreground">
                                   Not checked

@@ -117,6 +117,7 @@ export default function CategoryPage() {
     const incomplete = category.items.filter(item => item.status === null);
     const issues = category.items.filter(item => item.status === "no").length;
     const fixed = category.items.filter(item => item.status === "no" && item.fixed).length;
+    const na = category.items.filter(item => item.status === "na").length;
     
     return {
       total,
@@ -124,6 +125,7 @@ export default function CategoryPage() {
       incomplete,
       issues,
       fixed,
+      na,
       percentComplete: total ? Math.round((completed / total) * 100) : 0
     };
   }, [category]);
@@ -227,15 +229,22 @@ export default function CategoryPage() {
           </AlertDialog>
         </div>
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-          <span>{categoryStats.completed} of {categoryStats.total} items completed</span>
-          <span>•</span>
-          <span>{categoryStats.issues} issues found</span>
-          {categoryStats.issues > 0 && (
-            <>
-              <span>•</span>
-              <span>{categoryStats.fixed} fixed</span>
-            </>
-          )}
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline" className="bg-white/50 dark:bg-slate-950/50">
+              {categoryStats.completed}/{categoryStats.total} Complete
+            </Badge>
+            {categoryStats.issues > 0 && (
+              <Badge variant="destructive" className="bg-white/50">
+                {categoryStats.issues} {categoryStats.issues === 1 ? 'Issue' : 'Issues'}
+                {categoryStats.fixed > 0 && ` (${categoryStats.fixed} Fixed)`}
+              </Badge>
+            )}
+            {categoryStats.na > 0 && (
+              <Badge variant="secondary" className="bg-white/50">
+                {categoryStats.na} NA
+              </Badge>
+            )}
+          </div>
         </div>
         <Progress value={categoryStats.percentComplete} className="mt-2" />
         
