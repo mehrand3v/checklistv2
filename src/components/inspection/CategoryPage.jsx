@@ -193,7 +193,7 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="min-h-screen pb-[calc(5rem+env(safe-area-inset-bottom,0.5rem))]">
+    <div className="min-h-screen pb-[calc(6rem+env(safe-area-inset-bottom,0.5rem))]">
       {/* Category Title and Progress */}
       <div className="mb-6">
         <div className="flex justify-between items-start mb-2">
@@ -274,8 +274,8 @@ export default function CategoryPage() {
       </div>
 
       {/* Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border z-50">
-        <div className="container max-w-md mx-auto px-4 py-4" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
+      <div className="fixed bottom-[env(safe-area-inset-bottom,0px)] left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border z-50">
+        <div className="container max-w-md mx-auto px-4 py-4 mb-6">
           <div className="flex justify-between items-center gap-2">
             <Button
               variant="outline"

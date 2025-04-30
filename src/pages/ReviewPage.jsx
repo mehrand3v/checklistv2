@@ -142,7 +142,7 @@ export default function ReviewPage() {
       animate="animate"
       exit="exit"
       variants={pageVariants}
-      className="container py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0.5rem))] max-w-md mx-auto"
+      className="container py-6 pb-[calc(6rem+env(safe-area-inset-bottom,0.5rem))] max-w-md mx-auto"
     >
       <Card>
         <CardHeader>
@@ -215,8 +215,8 @@ export default function ReviewPage() {
             </Accordion>
           </div>
 
-          <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border z-50">
-            <div className="container max-w-md mx-auto px-4 py-4" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
+          <div className="fixed bottom-[env(safe-area-inset-bottom,0px)] left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border z-50">
+            <div className="container max-w-md mx-auto px-4 py-4 mb-6">
               <div className="flex justify-between items-center gap-2">
                 <Button 
                   variant="outline" 
