@@ -142,7 +142,7 @@ export default function ReviewPage() {
       animate="animate"
       exit="exit"
       variants={pageVariants}
-      className="container py-6 max-w-md mx-auto"
+      className="container py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,0.5rem))] max-w-md mx-auto"
     >
       <Card>
         <CardHeader>
@@ -215,7 +215,7 @@ export default function ReviewPage() {
             </Accordion>
           </div>
 
-          <div className="flex justify-between pt-4">
+          <div className="flex justify-between pt-4 pb-[env(safe-area-inset-bottom,0.5rem)]">
             <Button variant="outline" onClick={() => navigate(-1)}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
