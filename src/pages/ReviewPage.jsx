@@ -144,7 +144,7 @@ export default function ReviewPage() {
       variants={pageVariants}
       className="container py-6 pb-[calc(6rem+env(safe-area-inset-bottom,0.5rem))] max-w-md mx-auto"
     >
-      <Card>
+      <Card className="mb-24">
         <CardHeader>
           <CardTitle className="text-2xl">Review Inspection</CardTitle>
         </CardHeader>
@@ -214,41 +214,42 @@ export default function ReviewPage() {
               ))}
             </Accordion>
           </div>
-
-          <div className="fixed bottom-[env(safe-area-inset-bottom,0px)] left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border z-50">
-            <div className="container max-w-md mx-auto px-4 py-4 mb-6">
-              <div className="flex justify-between items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate(-1)}
-                  className="flex-1 min-w-[120px]"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!canSubmit || isSubmitting}
-                  className="flex-1 min-w-[120px]"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      Submit Inspection
-                      <SendHorizonal className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
+
+      {/* Navigation Bar */}
+      <div className="fixed bottom-[env(safe-area-inset-bottom,0px)] left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border z-50">
+        <div className="container max-w-md mx-auto px-4 py-4 mb-6">
+          <div className="flex justify-between items-center gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(-1)}
+              className="flex-1 min-w-[120px]"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+
+            <Button
+              onClick={handleSubmit}
+              disabled={!canSubmit || isSubmitting}
+              className="flex-1 min-w-[120px]"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  Submit Inspection
+                  <SendHorizonal className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
     </motion.div>
   );
 }
