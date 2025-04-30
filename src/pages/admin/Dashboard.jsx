@@ -235,18 +235,18 @@ function InspectionDetailDialog({
   const getStatusBadge = (status, fixed = false) => {
     switch (status) {
       case 'yes':
-        return <Badge className="bg-green-100 text-green-700">Yes</Badge>;
+        return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400">Yes</Badge>;
       case 'no':
         return (
           <div className="flex items-center gap-1">
-            <Badge className="bg-red-100 text-red-700">No</Badge>
-            {fixed && <Badge variant="outline">Fixed</Badge>}
+            <Badge className="bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400">No</Badge>
+            {fixed && <Badge variant="outline" className="dark:border-green-500 dark:text-green-400">Fixed</Badge>}
           </div>
         );
       case 'na':
-        return <Badge className="bg-gray-100 text-gray-700">NA</Badge>;
+        return <Badge className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">NA</Badge>;
       default:
-        return null;
+        return <Badge variant="outline" className="text-muted-foreground">Not checked</Badge>;
     }
   };
 
@@ -394,9 +394,11 @@ function InspectionDetailDialog({
                           <p className={`font-medium text-sm ${
                             item.status === "yes"
                               ? "text-green-900 dark:text-green-100"
-                              : item.fixed
-                                ? "text-blue-900 dark:text-blue-100"
-                                : "text-red-900 dark:text-red-100"
+                              : item.status === "na"
+                                ? "text-gray-900 dark:text-gray-100"
+                                : item.fixed
+                                  ? "text-blue-900 dark:text-blue-100"
+                                  : "text-red-900 dark:text-red-100"
                           }`}>{item.description}</p>
                           {item.notes && (
                             <p className="text-xs text-muted-foreground mt-0.5">
@@ -409,17 +411,21 @@ function InspectionDetailDialog({
                             variant={
                               item.status === "yes"
                                 ? "success"
-                                : item.fixed
-                                ? "default"
-                                : "destructive"
+                                : item.status === "na"
+                                  ? "secondary"
+                                  : item.fixed
+                                    ? "default"
+                                    : "destructive"
                             }
                             className="text-xs"
                           >
                             {item.status === "yes"
                               ? "Pass"
-                              : item.fixed
-                              ? "Fixed"
-                              : "Fail"}
+                              : item.status === "na"
+                                ? "NA"
+                                : item.fixed
+                                  ? "Fixed"
+                                  : "Fail"}
                           </Badge>
                         </div>
                       </div>

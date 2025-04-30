@@ -215,28 +215,37 @@ export default function ReviewPage() {
             </Accordion>
           </div>
 
-          <div className="flex justify-between pt-4 pb-[env(safe-area-inset-bottom,0.5rem)]">
-            <Button variant="outline" onClick={() => navigate(-1)}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
+          <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm border-t border-border z-50">
+            <div className="container max-w-md mx-auto px-4 py-4" style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}>
+              <div className="flex justify-between items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate(-1)}
+                  className="flex-1 min-w-[120px]"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
 
-            <Button
-              onClick={handleSubmit}
-              disabled={!canSubmit || isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  Submit Inspection
-                  <SendHorizonal className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!canSubmit || isSubmitting}
+                  className="flex-1 min-w-[120px]"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      Submit Inspection
+                      <SendHorizonal className="ml-2 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
