@@ -260,7 +260,7 @@ export default function CategoryPage() {
       </div>
 
       {/* Inspection items list */}
-      <div className="space-y-4 pb-24">
+      <div className="space-y-4 pb-4">
         {category.items.map((item, index) => (
           <motion.div
             key={item.id}
