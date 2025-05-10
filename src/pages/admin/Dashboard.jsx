@@ -1379,7 +1379,7 @@ export default function AdminDashboard() {
     if (totalItems === 0) return null;
 
     const pages = [];
-    const maxVisiblePages = 5;
+    const maxVisiblePages = window.innerWidth < 640 ? 3 : 5; // Show fewer pages on mobile
 
     // Calculate range of pages to show
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
@@ -1391,36 +1391,38 @@ export default function AdminDashboard() {
     }
 
     return (
-      <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0 sm:space-x-2">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-muted-foreground hidden sm:inline">Rows per page:</span>
-          <Select
-            value={itemsPerPage.toString()}
-            onValueChange={(value) => setItemsPerPage(parseInt(value))}
-          >
-            <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue placeholder={itemsPerPage} />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {[5, 10, 20, 30, 40, 50].map((pageSize) => (
-                <SelectItem key={pageSize} value={pageSize.toString()}>
-                  {pageSize}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <span className="text-sm text-muted-foreground">
+      <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 sm:space-x-2">
+        <div className="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-start">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">Rows per page:</span>
+            <Select
+              value={itemsPerPage.toString()}
+              onValueChange={(value) => setItemsPerPage(parseInt(value))}
+            >
+              <SelectTrigger className="h-8 w-[70px] text-xs sm:text-sm">
+                <SelectValue placeholder={itemsPerPage} />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[5, 10, 20, 30, 40, 50].map((pageSize) => (
+                  <SelectItem key={pageSize} value={pageSize.toString()} className="text-xs sm:text-sm">
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <span className="text-xs sm:text-sm text-muted-foreground">
             {`${Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}-${Math.min(currentPage * itemsPerPage, totalItems)} of ${totalItems}`}
           </span>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 sm:space-x-2 w-full sm:w-auto justify-center sm:justify-end">
           <Button
             variant="outline"
             size="icon"
             onClick={() => setCurrentPage(1)}
             disabled={currentPage === 1}
-            className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-blue-50 dark:hover:bg-blue-900/20"
           >
             <ChevronsLeft className="h-4 w-4 text-blue-500" />
           </Button>
@@ -1430,54 +1432,59 @@ export default function AdminDashboard() {
             size="icon"
             onClick={() => setCurrentPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-blue-50 dark:hover:bg-blue-900/20"
           >
             <ChevronLeft className="h-4 w-4 text-blue-500" />
           </Button>
 
-          {/* Page numbers */}
-          {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((page) => (
-            <Button
-              key={page}
-              variant={page === currentPage ? "default" : "outline"}
-              size="sm"
-              onClick={() => setCurrentPage(page)}
-            >
-              {page}
-            </Button>
-          ))}
+          {/* Page numbers - show fewer on mobile */}
+          <div className="flex items-center space-x-1">
+            {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((page) => (
+              <Button
+                key={page}
+                variant={page === currentPage ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+                className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-xs sm:text-sm"
+              >
+                {page}
+              </Button>
+            ))}
+          </div>
 
-          {/* Last page */}
+          {/* Last page - only show on desktop */}
           {endPage < totalPages && (
-            <>
+            <div className="hidden sm:flex items-center space-x-1">
+              <span className="text-muted-foreground text-sm">...</span>
               <Button
                 variant={currentPage === totalPages ? "default" : "outline"}
                 size="sm"
                 onClick={() => setCurrentPage(totalPages)}
+                className="h-9 w-9 p-0"
               >
                 {totalPages}
               </Button>
-            </>
+            </div>
           )}
-
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setCurrentPage(totalPages)}
-            disabled={currentPage === totalPages}
-            className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
-          >
-            <ChevronsRight className="h-4 w-4 text-blue-500" />
-          </Button>
 
           <Button
             variant="outline"
             size="icon"
             onClick={() => setCurrentPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-blue-50 dark:hover:bg-blue-900/20"
           >
             <ChevronRight className="h-4 w-4 text-blue-500" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setCurrentPage(totalPages)}
+            disabled={currentPage === totalPages}
+            className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+          >
+            <ChevronsRight className="h-4 w-4 text-blue-500" />
           </Button>
         </div>
       </div>
