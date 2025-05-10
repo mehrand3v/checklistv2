@@ -39,7 +39,7 @@ export default function LoginPage() {
 
     try {
       const success = await login(username, password);
-      
+
       if (success) {
         toast.success("Login successful");
         navigate("/admin");
@@ -155,7 +155,7 @@ export default function LoginPage() {
                     className="h-14 pl-12 pr-4 rounded-2xl border border-gray-200 bg-white/90 focus:ring-2 focus:ring-blue-400 focus:border-transparent shadow-sm transition-all duration-200 text-base"
                   />
                 </motion.div>
-                
+
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -182,7 +182,7 @@ export default function LoginPage() {
                     )}
                   </button>
                 </motion.div>
-                
+
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}

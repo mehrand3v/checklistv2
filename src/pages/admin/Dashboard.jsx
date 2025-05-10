@@ -38,6 +38,8 @@ import {
   BarChart2,
   Calendar,
   AlertTriangle,
+  Trophy,
+  Star,
 } from "lucide-react";
 import { DataTable } from "@/components/admin/DataTable";
 import { useAuth } from "@/context/AuthContext";
@@ -1393,23 +1395,23 @@ export default function AdminDashboard() {
     return (
       <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 sm:space-x-2">
         <div className="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-start">
-          <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2">
             <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">Rows per page:</span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(value) => setItemsPerPage(parseInt(value))}
-            >
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={(value) => setItemsPerPage(parseInt(value))}
+          >
               <SelectTrigger className="h-8 w-[70px] text-xs sm:text-sm">
-                <SelectValue placeholder={itemsPerPage} />
-              </SelectTrigger>
-              <SelectContent side="top">
-                {[5, 10, 20, 30, 40, 50].map((pageSize) => (
+              <SelectValue placeholder={itemsPerPage} />
+            </SelectTrigger>
+            <SelectContent side="top">
+              {[5, 10, 20, 30, 40, 50].map((pageSize) => (
                   <SelectItem key={pageSize} value={pageSize.toString()} className="text-xs sm:text-sm">
-                    {pageSize}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  {pageSize}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           </div>
           <span className="text-xs sm:text-sm text-muted-foreground">
             {`${Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}-${Math.min(currentPage * itemsPerPage, totalItems)} of ${totalItems}`}
@@ -1439,17 +1441,17 @@ export default function AdminDashboard() {
 
           {/* Page numbers - show fewer on mobile */}
           <div className="flex items-center space-x-1">
-            {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((page) => (
-              <Button
-                key={page}
-                variant={page === currentPage ? "default" : "outline"}
-                size="sm"
-                onClick={() => setCurrentPage(page)}
+          {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((page) => (
+            <Button
+              key={page}
+              variant={page === currentPage ? "default" : "outline"}
+              size="sm"
+              onClick={() => setCurrentPage(page)}
                 className="h-8 w-8 sm:h-9 sm:w-9 p-0 text-xs sm:text-sm"
-              >
-                {page}
-              </Button>
-            ))}
+            >
+              {page}
+            </Button>
+          ))}
           </div>
 
           {/* Last page - only show on desktop */}
@@ -1569,15 +1571,15 @@ export default function AdminDashboard() {
                       <Button
                         variant="outline"
                         role="combobox"
-                        className="w-full sm:w-[200px] justify-between"
+                        className="w-full sm:w-[200px] justify-between bg-white/50 dark:bg-gray-800/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300"
                       >
                         {selectedStore === "all" ? "All Stores" : `Store ${selectedStore}`}
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[200px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Search store..." />
+                      <Command className="bg-white/50 dark:bg-gray-800/50 border border-blue-200 dark:border-blue-800">
+                        <CommandInput placeholder="Search store..." className="border-b border-blue-200 dark:border-blue-800" />
                         <CommandEmpty>No store found.</CommandEmpty>
                         <CommandGroup>
                           <CommandItem
@@ -1586,6 +1588,7 @@ export default function AdminDashboard() {
                               setSelectedStore("all");
                               setStorePopoverOpen(false);
                             }}
+                            className="hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-700 dark:text-blue-300"
                           >
                             All Stores
                           </CommandItem>
@@ -1597,6 +1600,7 @@ export default function AdminDashboard() {
                                 setSelectedStore(store);
                                 setStorePopoverOpen(false);
                               }}
+                              className="hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-700 dark:text-blue-300"
                             >
                               Store {store}
                             </CommandItem>
@@ -1610,7 +1614,7 @@ export default function AdminDashboard() {
                       variant="outline"
                       size="sm"
                       onClick={() => setShowStoreComparison(true)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 bg-white/50 dark:bg-gray-800/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 border-purple-200 dark:border-purple-800 text-purple-700 dark:text-purple-300"
                     >
                       <BarChart2 className="h-4 w-4" />
                       Compare Stores
@@ -1619,7 +1623,7 @@ export default function AdminDashboard() {
                       variant="outline"
                       size="sm"
                       onClick={() => setShowIssueTrends(true)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 bg-white/50 dark:bg-gray-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300"
                     >
                       <TrendingUp className="h-4 w-4" />
                       Issue Trends
@@ -1627,48 +1631,48 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
                   {selectedStore === "all" ? (
                     <>
-                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                          <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                      <div className="flex items-center space-x-2 sm:space-x-4 p-2 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                        <div className="bg-primary/10 p-1.5 sm:p-2 rounded-full">
+                          <FileText className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />
                         </div>
                         <div>
-                          <p className="text-xs sm:text-sm text-muted-foreground">Total Inspections</p>
-                          <p className="text-xl sm:text-2xl font-bold">{inspections.length}</p>
+                          <p className="text-[10px] sm:text-sm text-muted-foreground">Total Inspections</p>
+                          <p className="text-base sm:text-2xl font-bold">{inspections.length}</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                        <div className="bg-green-500/10 p-2 rounded-full">
-                          <Store className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
+                      <div className="flex items-center space-x-2 sm:space-x-4 p-2 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                        <div className="bg-green-500/10 p-1.5 sm:p-2 rounded-full">
+                          <Store className="h-4 w-4 sm:h-6 sm:w-6 text-green-500" />
                         </div>
                         <div>
-                          <p className="text-xs sm:text-sm text-muted-foreground">Active Stores</p>
-                          <p className="text-xl sm:text-2xl font-bold">{uniqueStores.length}</p>
+                          <p className="text-[10px] sm:text-sm text-muted-foreground">Active Stores</p>
+                          <p className="text-base sm:text-2xl font-bold">{uniqueStores.length}</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                        <div className="bg-blue-500/10 p-2 rounded-full">
-                          <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
+                      <div className="flex items-center space-x-2 sm:space-x-4 p-2 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                        <div className="bg-blue-500/10 p-1.5 sm:p-2 rounded-full">
+                          <AlertCircle className="h-4 w-4 sm:h-6 sm:w-6 text-blue-500" />
                         </div>
                         <div>
-                          <p className="text-xs sm:text-sm text-muted-foreground">Total Issues</p>
-                          <p className="text-xl sm:text-2xl font-bold">
+                          <p className="text-[10px] sm:text-sm text-muted-foreground">Total Issues</p>
+                          <p className="text-base sm:text-2xl font-bold">
                             {Object.values(storeStats).reduce((sum, stat) => sum + (stat.totalIssues || 0), 0)}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                        <div className="bg-purple-500/10 p-2 rounded-full">
-                          <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-purple-500" />
+                      <div className="flex items-center space-x-2 sm:space-x-4 p-2 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                        <div className="bg-purple-500/10 p-1.5 sm:p-2 rounded-full">
+                          <CheckCircle className="h-4 w-4 sm:h-6 sm:w-6 text-purple-500" />
                         </div>
                         <div>
-                          <p className="text-xs sm:text-sm text-muted-foreground">Resolution Rate</p>
-                          <p className="text-xl sm:text-2xl font-bold">
+                          <p className="text-[10px] sm:text-sm text-muted-foreground">Resolution Rate</p>
+                          <p className="text-base sm:text-2xl font-bold">
                             {(() => {
                               const totalIssues = Object.values(storeStats).reduce((sum, stat) => sum + (stat.totalIssues || 0), 0);
                               const totalFixed = Object.values(storeStats).reduce((sum, stat) => sum + (stat.totalFixedIssues || 0), 0);
@@ -1677,55 +1681,26 @@ export default function AdminDashboard() {
                           </p>
                         </div>
                       </div>
-
-                      {/* Top Performing Stores */}
-                      <div className="col-span-full mt-4">
-                        <h3 className="text-sm font-semibold mb-2">Top Performing Stores</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {Object.entries(storeStats)
-                            .sort((a, b) => {
-                              const aRate = a[1].issueResolutionRate || 100;
-                              const bRate = b[1].issueResolutionRate || 100;
-                              return bRate - aRate;
-                            })
-                            .slice(0, 3)
-                            .map(([store, stats]) => (
-                              <div key={store} className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                                <p className="font-medium text-sm mb-1">Store {store}</p>
-                                <div className="flex items-center justify-between text-xs sm:text-sm">
-                                  <span className="text-muted-foreground">Resolution Rate</span>
-                                  <span className="text-green-600 dark:text-green-400">
-                                    {stats.issueResolutionRate}%
-                                  </span>
-                                </div>
-                                <div className="flex items-center justify-between text-xs sm:text-sm mt-1">
-                                  <span className="text-muted-foreground">Total Issues</span>
-                                  <span>{stats.totalIssues}</span>
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
                     </>
                   ) : (
                     <>
-                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                          <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                      <div className="flex items-center space-x-2 sm:space-x-4 p-2 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                        <div className="bg-primary/10 p-1.5 sm:p-2 rounded-full">
+                          <FileText className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />
                         </div>
                         <div>
-                          <p className="text-xs sm:text-sm text-muted-foreground">Store Inspections</p>
-                          <p className="text-xl sm:text-2xl font-bold">{storeStats[selectedStore]?.totalInspections || 0}</p>
+                          <p className="text-[10px] sm:text-sm text-muted-foreground">Store Inspections</p>
+                          <p className="text-base sm:text-2xl font-bold">{storeStats[selectedStore]?.totalInspections || 0}</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                        <div className="bg-green-500/10 p-2 rounded-full">
-                          <Store className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
+                      <div className="flex items-center space-x-2 sm:space-x-4 p-2 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                        <div className="bg-green-500/10 p-1.5 sm:p-2 rounded-full">
+                          <Store className="h-4 w-4 sm:h-6 sm:w-6 text-green-500" />
                         </div>
                         <div>
-                          <p className="text-xs sm:text-sm text-muted-foreground">Last Inspection</p>
-                          <p className="text-xl sm:text-2xl font-bold">
+                          <p className="text-[10px] sm:text-sm text-muted-foreground">Last Inspection</p>
+                          <p className="text-base sm:text-2xl font-bold">
                             {storeStats[selectedStore]?.lastInspection
                               ? new Date(storeStats[selectedStore].lastInspection).toLocaleDateString()
                               : 'Never'}
@@ -1733,112 +1708,233 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                        <div className="bg-blue-500/10 p-2 rounded-full">
-                          <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
+                      <div className="flex items-center space-x-2 sm:space-x-4 p-2 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                        <div className="bg-blue-500/10 p-1.5 sm:p-2 rounded-full">
+                          <AlertCircle className="h-4 w-4 sm:h-6 sm:w-6 text-blue-500" />
                         </div>
                         <div>
-                          <p className="text-xs sm:text-sm text-muted-foreground">Avg. Issues/Inspection</p>
-                          <p className="text-xl sm:text-2xl font-bold">{storeStats[selectedStore]?.averageIssuesPerInspection || 0}</p>
+                          <p className="text-[10px] sm:text-sm text-muted-foreground">Avg. Issues/Inspection</p>
+                          <p className="text-base sm:text-2xl font-bold">{storeStats[selectedStore]?.averageIssuesPerInspection || 0}</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                        <div className="bg-purple-500/10 p-2 rounded-full">
-                          <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-purple-500" />
+                      <div className="flex items-center space-x-2 sm:space-x-4 p-2 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                        <div className="bg-purple-500/10 p-1.5 sm:p-2 rounded-full">
+                          <CheckCircle className="h-4 w-4 sm:h-6 sm:w-6 text-purple-500" />
                         </div>
                         <div>
-                          <p className="text-xs sm:text-sm text-muted-foreground">Issue Resolution</p>
-                          <p className="text-xl sm:text-2xl font-bold">{storeStats[selectedStore]?.issueResolutionRate || 100}%</p>
+                          <p className="text-[10px] sm:text-sm text-muted-foreground">Issue Resolution</p>
+                          <p className="text-base sm:text-2xl font-bold">{storeStats[selectedStore]?.issueResolutionRate || 100}%</p>
                         </div>
                       </div>
 
                       {storeStats[selectedStore]?.inspectionFrequency && (
-                        <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                          <div className="bg-amber-500/10 p-2 rounded-full">
-                            <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />
+                        <div className="flex items-center space-x-2 sm:space-x-4 p-2 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                          <div className="bg-amber-500/10 p-1.5 sm:p-2 rounded-full">
+                            <Clock className="h-4 w-4 sm:h-6 sm:w-6 text-amber-500" />
                           </div>
                           <div>
-                            <p className="text-xs sm:text-sm text-muted-foreground">Avg. Days Between Inspections</p>
-                            <p className="text-xl sm:text-2xl font-bold">{storeStats[selectedStore].inspectionFrequency}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Category-wise Issues Breakdown */}
-                      {Object.entries(storeStats[selectedStore]?.categoryIssues || {}).length > 0 && (
-                        <div className="col-span-full mt-4">
-                          <h3 className="text-sm font-semibold mb-2">Category-wise Issues</h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {Object.entries(storeStats[selectedStore].categoryIssues)
-                              .sort((a, b) => b[1].total - a[1].total)
-                              .map(([category, stats]) => (
-                                <div key={category} className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                                  <p className="font-medium text-sm mb-1">{category}</p>
-                                  <div className="flex items-center justify-between text-xs sm:text-sm">
-                                    <span className="text-muted-foreground">Total: {stats.total}</span>
-                                    <span className="text-green-600 dark:text-green-400">
-                                      Fixed: {stats.fixed} ({stats.total > 0 ? ((stats.fixed / stats.total) * 100).toFixed(1) : 100}%)
-                                    </span>
-                                  </div>
-                                  <div className="mt-2 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                                    <div
-                                      className="h-full bg-green-500 dark:bg-green-400 rounded-full"
-                                      style={{ width: `${(stats.fixed / stats.total) * 100}%` }}
-                                    />
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Recent Trend */}
-                      {storeStats[selectedStore]?.totalInspections > 1 && (
-                        <div className="col-span-full mt-4">
-                          <h3 className="text-sm font-semibold mb-2">Recent Trend</h3>
-                          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm mb-2">
-                              <span className="text-muted-foreground">Last 3 Inspections</span>
-                              <span className="text-blue-600 dark:text-blue-400 mt-1 sm:mt-0">
-                                {storeStats[selectedStore].inspectionFrequency} days avg. interval
-                              </span>
-                            </div>
-                            <div className="space-y-2">
-                              {inspections
-                                .filter(i => i.storeNumber === selectedStore)
-                                .sort((a, b) => new Date(b.inspectionDate) - new Date(a.inspectionDate))
-                                .slice(0, 3)
-                                .map((inspection, index) => {
-                                  const issueCount = inspection.categories?.reduce((count, category) =>
-                                    count + (category.items?.filter(item => item.status === "no").length || 0), 0) || 0;
-                                  const fixedCount = inspection.categories?.reduce((count, category) =>
-                                    count + (category.items?.filter(item => item.status === "no" && item.fixed).length || 0), 0) || 0;
-
-                                  return (
-                                    <div key={inspection.id} className="flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm">
-                                      <span className="text-muted-foreground">
-                                        {new Date(inspection.inspectionDate).toLocaleDateString()}
-                                      </span>
-                                      <div className="flex items-center gap-2 mt-1 sm:mt-0">
-                                        <span className={issueCount === 0 ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}>
-                                          {issueCount} issues
-                                        </span>
-                                        {issueCount > 0 && (
-                                          <span className="text-blue-600 dark:text-blue-400">
-                                            ({fixedCount} fixed)
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                            </div>
+                            <p className="text-[10px] sm:text-sm text-muted-foreground">Avg. Days Between Inspections</p>
+                            <p className="text-base sm:text-2xl font-bold">{storeStats[selectedStore].inspectionFrequency}</p>
                           </div>
                         </div>
                       )}
                     </>
                   )}
+                </div>
+
+                {/* Top Performing Stores */}
+                <div className="col-span-full mt-4">
+                  <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-amber-500" />
+                    Top Performing Stores (Last 4 Weeks)
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+                    {(() => {
+                      const twoWeeksAgo = new Date();
+                      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+                      const MIN_INSPECTIONS = 10;
+
+                      const recentStats = Object.entries(storeStats)
+                        .map(([store, stats]) => {
+                          const recentInspections = inspections
+                            .filter(i => i.storeNumber === store && new Date(i.inspectionDate) >= twoWeeksAgo);
+
+                          if (recentInspections.length < MIN_INSPECTIONS) return null;
+
+                          let totalIssues = 0;
+                          let totalFixedIssues = 0;
+
+                          recentInspections.forEach(inspection => {
+                            inspection.categories?.forEach(category => {
+                              category.items?.forEach(item => {
+                                if (item.status === "no") {
+                                  totalIssues++;
+                                  if (item.fixed) {
+                                    totalFixedIssues++;
+                                  }
+                                }
+                              });
+                            });
+                          });
+
+                          const resolutionRate = totalIssues > 0
+                            ? ((totalFixedIssues / totalIssues) * 100).toFixed(1)
+                            : 100;
+
+                          return {
+                            store,
+                            stats: {
+                              ...stats,
+                              recentInspections: recentInspections.length,
+                              totalIssues,
+                              totalFixedIssues,
+                              issueResolutionRate: resolutionRate
+                            }
+                          };
+                        })
+                        .filter(Boolean)
+                        .sort((a, b) => b.stats.issueResolutionRate - a.stats.issueResolutionRate)
+                        .slice(0, 3);
+
+                      if (recentStats.length === 0) {
+                        return (
+                          <div className="col-span-full p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+                              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                              <p className="text-xs sm:text-sm">No stores have completed {MIN_INSPECTIONS} or more inspections in the last 2 weeks</p>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      return recentStats.map(({ store, stats }, index) => {
+                        const isPerfect = stats.issueResolutionRate === 100;
+                        const isExcellent = stats.issueResolutionRate >= 90;
+                        const isGood = stats.issueResolutionRate >= 75;
+
+                        return (
+                          <motion.div
+                            key={store}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className={cn(
+                              "p-3 sm:p-4 rounded-lg relative overflow-hidden",
+                              isPerfect ? "bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800" :
+                              isExcellent ? "bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800" :
+                              "bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800"
+                            )}
+                          >
+                            <div className="absolute top-2 right-2">
+                              {index === 0 && (
+                                <div className="flex items-center gap-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium">
+                                  <Trophy className="h-3 w-3" />
+                                  1st Place
+                                </div>
+                              )}
+                              {index === 1 && (
+                                <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium">
+                                  <Trophy className="h-3 w-3" />
+                                  2nd Place
+                                </div>
+                              )}
+                              {index === 2 && (
+                                <div className="flex items-center gap-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium">
+                                  <Trophy className="h-3 w-3" />
+                                  3rd Place
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="space-y-2 sm:space-y-3">
+                              <div className="flex items-center gap-2">
+                                <div className={cn(
+                                  "p-1.5 sm:p-2 rounded-full",
+                                  isPerfect ? "bg-green-100 dark:bg-green-900/30" :
+                                  isExcellent ? "bg-blue-100 dark:bg-blue-900/30" :
+                                  "bg-amber-100 dark:bg-amber-900/30"
+                                )}>
+                                  <Store className={cn(
+                                    "h-4 w-4 sm:h-5 sm:w-5",
+                                    isPerfect ? "text-green-600 dark:text-green-400" :
+                                    isExcellent ? "text-blue-600 dark:text-blue-400" :
+                                    "text-amber-600 dark:text-amber-400"
+                                  )} />
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-sm sm:text-base">Store {store}</h4>
+                                  <p className={cn(
+                                    "text-xs sm:text-sm",
+                                    isPerfect ? "text-green-600 dark:text-green-400" :
+                                    isExcellent ? "text-blue-600 dark:text-blue-400" :
+                                    "text-amber-600 dark:text-amber-400"
+                                  )}>
+                                    {isPerfect ? "Perfect Performance!" :
+                                     isExcellent ? "Excellent Work!" :
+                                     "Great Progress!"}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="space-y-1 sm:space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] sm:text-sm text-muted-foreground">Resolution Rate</span>
+                                  <span className={cn(
+                                    "font-semibold text-xs sm:text-sm",
+                                    isPerfect ? "text-green-600 dark:text-green-400" :
+                                    isExcellent ? "text-blue-600 dark:text-blue-400" :
+                                    "text-amber-600 dark:text-amber-400"
+                                  )}>
+                                    {stats.issueResolutionRate}%
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] sm:text-sm text-muted-foreground">Recent Inspections</span>
+                                  <span className="font-medium text-xs sm:text-sm">{stats.recentInspections}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] sm:text-sm text-muted-foreground">Total Issues</span>
+                                  <span className="font-medium text-xs sm:text-sm">{stats.totalIssues}</span>
+                                </div>
+                              </div>
+
+                              <div className="h-1.5 sm:h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${stats.issueResolutionRate}%` }}
+                                  transition={{ duration: 1, delay: index * 0.2 }}
+                                  className={cn(
+                                    "h-full rounded-full",
+                                    isPerfect ? "bg-green-500 dark:bg-green-400" :
+                                    isExcellent ? "bg-blue-500 dark:bg-blue-400" :
+                                    "bg-amber-500 dark:bg-amber-400"
+                                  )}
+                                />
+                              </div>
+
+                              {isPerfect && (
+                                <div className="flex items-center gap-2 mt-1 sm:mt-2">
+                                  <div className="flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full text-[10px] sm:text-xs">
+                                    <CheckCircle className="h-3 w-3" />
+                                    Perfect Score
+                                  </div>
+                                </div>
+                              )}
+                              {isExcellent && !isPerfect && (
+                                <div className="flex items-center gap-2 mt-1 sm:mt-2">
+                                  <div className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full text-[10px] sm:text-xs">
+                                    <Star className="h-3 w-3" />
+                                    Excellent Performance
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      });
+                    })()}
+                  </div>
                 </div>
               </CardContent>
             )}
