@@ -104,12 +104,11 @@ export const submitInspection = async (inspectionData) => {
 };
 
 // Get all inspections
-export const getAllInspections = async (limitCount = 50) => {
+export const getAllInspections = async () => {
   try {
     const q = query(
       collection(db, COLLECTIONS.INSPECTIONS),
-      orderBy("submittedAt", "desc"),
-      limit(limitCount)
+      orderBy("submittedAt", "desc")
     );
 
     const querySnapshot = await getDocs(q);
@@ -321,7 +320,7 @@ export const saveCategory = async (categoryData) => {
     // If it's a new category, get count of existing categories for ordering
     let order = 0;
     let existingItems = [];
-    
+
     if (isNew) {
       const countSnapshot = await getDocs(
         collection(db, COLLECTIONS.CATEGORIES)
@@ -333,7 +332,7 @@ export const saveCategory = async (categoryData) => {
       if (currentSnapshot.exists()) {
         const currentData = currentSnapshot.data();
         order = currentData.order || 0;
-        
+
         // Get existing items for this category
         const itemsQuery = query(
           collection(db, COLLECTIONS.ITEMS),
@@ -595,19 +594,19 @@ export const updateCategoryOrder = async (categoryOrders) => {
   try {
     // Create a batch to update all categories at once
     const batch = writeBatch(db);
-    
+
     // Update each category's order
     categoryOrders.forEach(({ id, order }) => {
       const categoryRef = doc(db, COLLECTIONS.CATEGORIES, id);
-      batch.update(categoryRef, { 
+      batch.update(categoryRef, {
         order,
         updatedAt: serverTimestamp()
       });
     });
-    
+
     // Commit the batch
     await batch.commit();
-    
+
     return { success: true };
   } catch (error) {
     console.error("Error updating category order:", error);
@@ -620,19 +619,19 @@ export const updateItemOrder = async (categoryId, itemOrders) => {
   try {
     // Create a batch to update all items at once
     const batch = writeBatch(db);
-    
+
     // Update each item's order
     itemOrders.forEach(({ id, order }) => {
       const itemRef = doc(db, COLLECTIONS.ITEMS, id);
-      batch.update(itemRef, { 
+      batch.update(itemRef, {
         order,
         updatedAt: serverTimestamp()
       });
     });
-    
+
     // Commit the batch
     await batch.commit();
-    
+
     return { success: true };
   } catch (error) {
     console.error("Error updating item order:", error);
