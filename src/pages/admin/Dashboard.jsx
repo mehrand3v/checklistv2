@@ -33,6 +33,11 @@ import {
   ChevronUp,
   CheckCircle,
   AlertCircle,
+  Clock,
+  TrendingUp,
+  BarChart2,
+  Calendar,
+  AlertTriangle,
 } from "lucide-react";
 import { DataTable } from "@/components/admin/DataTable";
 import { useAuth } from "@/context/AuthContext";
@@ -78,6 +83,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import confetti from 'canvas-confetti';
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 // Add this new component for the no issues celebration dialog
 function NoIssuesDialog({ inspection, open, onOpenChange }) {
@@ -613,6 +630,206 @@ const generatePDF = async (inspections) => {
   }
 };
 
+// Add this new component for store comparison
+function StoreComparisonDialog({ stores, storeStats, open, onOpenChange }) {
+  const [selectedStores, setSelectedStores] = useState([]);
+
+  const compareStores = () => {
+    return selectedStores.map(store => ({
+      store,
+      stats: storeStats[store]
+    }));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Compare Stores</DialogTitle>
+          <DialogDescription>Select up to 3 stores to compare their performance</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {Object.keys(storeStats).map(store => (
+              <Button
+                key={store}
+                variant={selectedStores.includes(store) ? "default" : "outline"}
+                onClick={() => {
+                  if (selectedStores.includes(store)) {
+                    setSelectedStores(selectedStores.filter(s => s !== store));
+                  } else if (selectedStores.length < 3) {
+                    setSelectedStores([...selectedStores, store]);
+                  }
+                }}
+                className="text-sm"
+              >
+                Store {store}
+              </Button>
+            ))}
+          </div>
+
+          {selectedStores.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {compareStores().map(({ store, stats }) => (
+                <Card key={store}>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Store {store}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Total Inspections</span>
+                        <span className="font-medium">{stats.totalInspections}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Avg. Issues/Inspection</span>
+                        <span className="font-medium">{stats.averageIssuesPerInspection}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Resolution Rate</span>
+                        <span className="font-medium">{stats.issueResolutionRate}%</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Last Inspection</span>
+                        <span className="font-medium">
+                          {stats.lastInspection ? new Date(stats.lastInspection).toLocaleDateString() : 'Never'}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Add this new component for issue trends
+function IssueTrendsDialog({ inspections, open, onOpenChange }) {
+  const [timeRange, setTimeRange] = useState('30'); // days
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const getTrendData = () => {
+    const now = new Date();
+    const startDate = new Date(now.setDate(now.getDate() - parseInt(timeRange)));
+
+    const filteredInspections = inspections.filter(inspection =>
+      new Date(inspection.inspectionDate) >= startDate
+    );
+
+    const categories = new Set();
+    filteredInspections.forEach(inspection => {
+      inspection.categories?.forEach(category => {
+        categories.add(category.title);
+      });
+    });
+
+    const trendData = Array.from(categories).map(category => {
+      const categoryInspections = filteredInspections.filter(inspection =>
+        inspection.categories?.some(c => c.title === category)
+      );
+
+      const totalIssues = categoryInspections.reduce((sum, inspection) => {
+        const categoryItems = inspection.categories?.find(c => c.title === category)?.items || [];
+        return sum + categoryItems.filter(item => item.status === 'no').length;
+      }, 0);
+
+      const fixedIssues = categoryInspections.reduce((sum, inspection) => {
+        const categoryItems = inspection.categories?.find(c => c.title === category)?.items || [];
+        return sum + categoryItems.filter(item => item.status === 'no' && item.fixed).length;
+      }, 0);
+
+      return {
+        category,
+        totalIssues,
+        fixedIssues,
+        resolutionRate: totalIssues > 0 ? (fixedIssues / totalIssues) * 100 : 100
+      };
+    });
+
+    return trendData.sort((a, b) => b.totalIssues - a.totalIssues);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Issue Trends</DialogTitle>
+          <DialogDescription>Analyze issue patterns and trends</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-4">
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select time range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">Last 7 days</SelectItem>
+                <SelectItem value="30">Last 30 days</SelectItem>
+                <SelectItem value="90">Last 90 days</SelectItem>
+                <SelectItem value="180">Last 180 days</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {Array.from(new Set(inspections.flatMap(i =>
+                  i.categories?.map(c => c.title) || []
+                ))).map(category => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {getTrendData()
+              .filter(data => selectedCategory === 'all' || data.category === selectedCategory)
+              .map(data => (
+                <Card key={data.category}>
+                  <CardHeader>
+                    <CardTitle className="text-lg">{data.category}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Total Issues</span>
+                        <span className="font-medium">{data.totalIssues}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Fixed Issues</span>
+                        <span className="font-medium">{data.fixedIssues}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Resolution Rate</span>
+                        <span className="font-medium">{data.resolutionRate.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                    <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-green-500 dark:bg-green-400 rounded-full"
+                        style={{ width: `${data.resolutionRate}%` }}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function AdminDashboard() {
   const { currentUser, canDelete, canEdit } = useAuth();
   const [issues, setIssues] = useState([]);
@@ -625,6 +842,9 @@ export default function AdminDashboard() {
   const [uniqueStores, setUniqueStores] = useState([]);
   const [showStoreOverview, setShowStoreOverview] = useState(false);
   const [issueFilter, setIssueFilter] = useState(null);
+  const [storePopoverOpen, setStorePopoverOpen] = useState(false);
+  const [showStoreComparison, setShowStoreComparison] = useState(false);
+  const [showIssueTrends, setShowIssueTrends] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -689,11 +909,64 @@ export default function AdminDashboard() {
     uniqueStores.forEach(storeNumber => {
       const storeInspections = inspections.filter(i => i?.storeNumber === storeNumber);
 
+      // Calculate total issues and fixed issues
+      let totalIssues = 0;
+      let totalFixedIssues = 0;
+      let categoryIssues = {};
+
+      storeInspections.forEach(inspection => {
+        if (inspection.categories && Array.isArray(inspection.categories)) {
+          inspection.categories.forEach(category => {
+            if (category.items && Array.isArray(category.items)) {
+              // Initialize category in stats if not exists
+              if (!categoryIssues[category.title]) {
+                categoryIssues[category.title] = { total: 0, fixed: 0 };
+              }
+
+              category.items.forEach(item => {
+                if (item.status === "no") {
+                  totalIssues++;
+                  categoryIssues[category.title].total++;
+                  if (item.fixed) {
+                    totalFixedIssues++;
+                    categoryIssues[category.title].fixed++;
+                  }
+                }
+              });
+            }
+          });
+        }
+      });
+
+      // Calculate inspection frequency (average days between inspections)
+      let inspectionFrequency = null;
+      if (storeInspections.length > 1) {
+        const dates = storeInspections
+          .map(i => new Date(i.inspectionDate || i.clientDate))
+          .sort((a, b) => a - b);
+
+        let totalDays = 0;
+        for (let i = 1; i < dates.length; i++) {
+          totalDays += (dates[i] - dates[i-1]) / (1000 * 60 * 60 * 24);
+        }
+        inspectionFrequency = Math.round(totalDays / (dates.length - 1));
+      }
+
       stats[storeNumber] = {
         totalInspections: storeInspections.length,
         lastInspection: storeInspections.length > 0
           ? new Date(Math.max(...storeInspections.map(i => new Date(i.inspectionDate || i.clientDate))))
           : null,
+        averageIssuesPerInspection: storeInspections.length > 0
+          ? (totalIssues / storeInspections.length).toFixed(1)
+          : 0,
+        issueResolutionRate: totalIssues > 0
+          ? ((totalFixedIssues / totalIssues) * 100).toFixed(1)
+          : 100,
+        inspectionFrequency,
+        categoryIssues,
+        totalIssues,
+        totalFixedIssues
       };
     });
     setStoreStats(stats);
@@ -1255,13 +1528,13 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/80 via-indigo-50/50 to-purple-50/80 dark:from-blue-950/20 dark:via-indigo-950/10 dark:to-purple-950/20">
-      <div className="container mx-auto py-8 px-1 sm:px-2 lg:px-6">
-        <h1 className="text-lg font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+      <div className="container mx-auto py-4 sm:py-8 px-2 sm:px-4 lg:px-6">
+        <h1 className="text-lg font-bold mb-4 sm:mb-6 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
           Dashboard
         </h1>
 
         {/* Store Filter - Expandable */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <Card>
             <CardHeader
               className="pb-2 cursor-pointer"
@@ -1269,84 +1542,294 @@ export default function AdminDashboard() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Store Overview</CardTitle>
-                  <CardDescription>Select a store to view detailed statistics</CardDescription>
+                  <CardTitle className="text-base sm:text-lg">Store Analytics</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Select a store to view detailed statistics</CardDescription>
                 </div>
                 <Button variant="ghost" size="icon">
                   {showStoreOverview ? (
-                    <ChevronUp className="h-5 w-5" />
+                    <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5" />
                   ) : (
-                    <ChevronDown className="h-5 w-5" />
+                    <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" />
                   )}
                 </Button>
               </div>
             </CardHeader>
             {showStoreOverview && (
               <CardContent>
-                <div className="flex items-center space-x-4 mb-4">
-                  <Select value={selectedStore} onValueChange={setSelectedStore}>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Select store" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Stores</SelectItem>
-                      {uniqueStores.map(store => (
-                        <SelectItem key={store} value={store}>
-                          Store {store}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mb-4">
+                  <Popover open={storePopoverOpen} onOpenChange={setStorePopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full sm:w-[200px] justify-between"
+                      >
+                        {selectedStore === "all" ? "All Stores" : `Store ${selectedStore}`}
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[200px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Search store..." />
+                        <CommandEmpty>No store found.</CommandEmpty>
+                        <CommandGroup>
+                          <CommandItem
+                            value="all"
+                            onSelect={() => {
+                              setSelectedStore("all");
+                              setStorePopoverOpen(false);
+                            }}
+                          >
+                            All Stores
+                          </CommandItem>
+                          {uniqueStores.map((store) => (
+                            <CommandItem
+                              key={store}
+                              value={store}
+                              onSelect={() => {
+                                setSelectedStore(store);
+                                setStorePopoverOpen(false);
+                              }}
+                            >
+                              Store {store}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowStoreComparison(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <BarChart2 className="h-4 w-4" />
+                      Compare Stores
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowIssueTrends(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <TrendingUp className="h-4 w-4" />
+                      Issue Trends
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   {selectedStore === "all" ? (
                     <>
-                      <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
                         <div className="bg-primary/10 p-2 rounded-full">
-                          <FileText className="h-6 w-6 text-primary" />
+                          <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Total Inspections</p>
-                          <p className="text-2xl font-bold">{inspections.length}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">Total Inspections</p>
+                          <p className="text-xl sm:text-2xl font-bold">{inspections.length}</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
                         <div className="bg-green-500/10 p-2 rounded-full">
-                          <Store className="h-6 w-6 text-green-500" />
+                          <Store className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Active Stores</p>
-                          <p className="text-2xl font-bold">{uniqueStores.length}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">Active Stores</p>
+                          <p className="text-xl sm:text-2xl font-bold">{uniqueStores.length}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                        <div className="bg-blue-500/10 p-2 rounded-full">
+                          <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm text-muted-foreground">Total Issues</p>
+                          <p className="text-xl sm:text-2xl font-bold">
+                            {Object.values(storeStats).reduce((sum, stat) => sum + (stat.totalIssues || 0), 0)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                        <div className="bg-purple-500/10 p-2 rounded-full">
+                          <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-purple-500" />
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm text-muted-foreground">Resolution Rate</p>
+                          <p className="text-xl sm:text-2xl font-bold">
+                            {(() => {
+                              const totalIssues = Object.values(storeStats).reduce((sum, stat) => sum + (stat.totalIssues || 0), 0);
+                              const totalFixed = Object.values(storeStats).reduce((sum, stat) => sum + (stat.totalFixedIssues || 0), 0);
+                              return totalIssues > 0 ? `${((totalFixed / totalIssues) * 100).toFixed(1)}%` : '100%';
+                            })()}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Top Performing Stores */}
+                      <div className="col-span-full mt-4">
+                        <h3 className="text-sm font-semibold mb-2">Top Performing Stores</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {Object.entries(storeStats)
+                            .sort((a, b) => {
+                              const aRate = a[1].issueResolutionRate || 100;
+                              const bRate = b[1].issueResolutionRate || 100;
+                              return bRate - aRate;
+                            })
+                            .slice(0, 3)
+                            .map(([store, stats]) => (
+                              <div key={store} className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                                <p className="font-medium text-sm mb-1">Store {store}</p>
+                                <div className="flex items-center justify-between text-xs sm:text-sm">
+                                  <span className="text-muted-foreground">Resolution Rate</span>
+                                  <span className="text-green-600 dark:text-green-400">
+                                    {stats.issueResolutionRate}%
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between text-xs sm:text-sm mt-1">
+                                  <span className="text-muted-foreground">Total Issues</span>
+                                  <span>{stats.totalIssues}</span>
+                                </div>
+                              </div>
+                            ))}
                         </div>
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
                         <div className="bg-primary/10 p-2 rounded-full">
-                          <FileText className="h-6 w-6 text-primary" />
+                          <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Store Inspections</p>
-                          <p className="text-2xl font-bold">{storeStats[selectedStore]?.totalInspections || 0}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">Store Inspections</p>
+                          <p className="text-xl sm:text-2xl font-bold">{storeStats[selectedStore]?.totalInspections || 0}</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
                         <div className="bg-green-500/10 p-2 rounded-full">
-                          <Store className="h-6 w-6 text-green-500" />
+                          <Store className="h-5 w-5 sm:h-6 sm:w-6 text-green-500" />
                         </div>
                         <div>
-                          <p className="text-sm text-muted-foreground">Last Inspection</p>
-                          <p className="text-2xl font-bold">
+                          <p className="text-xs sm:text-sm text-muted-foreground">Last Inspection</p>
+                          <p className="text-xl sm:text-2xl font-bold">
                             {storeStats[selectedStore]?.lastInspection
                               ? new Date(storeStats[selectedStore].lastInspection).toLocaleDateString()
                               : 'Never'}
                           </p>
                         </div>
                       </div>
+
+                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                        <div className="bg-blue-500/10 p-2 rounded-full">
+                          <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm text-muted-foreground">Avg. Issues/Inspection</p>
+                          <p className="text-xl sm:text-2xl font-bold">{storeStats[selectedStore]?.averageIssuesPerInspection || 0}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                        <div className="bg-purple-500/10 p-2 rounded-full">
+                          <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-purple-500" />
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm text-muted-foreground">Issue Resolution</p>
+                          <p className="text-xl sm:text-2xl font-bold">{storeStats[selectedStore]?.issueResolutionRate || 100}%</p>
+                        </div>
+                      </div>
+
+                      {storeStats[selectedStore]?.inspectionFrequency && (
+                        <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                          <div className="bg-amber-500/10 p-2 rounded-full">
+                            <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />
+                          </div>
+                          <div>
+                            <p className="text-xs sm:text-sm text-muted-foreground">Avg. Days Between Inspections</p>
+                            <p className="text-xl sm:text-2xl font-bold">{storeStats[selectedStore].inspectionFrequency}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Category-wise Issues Breakdown */}
+                      {Object.entries(storeStats[selectedStore]?.categoryIssues || {}).length > 0 && (
+                        <div className="col-span-full mt-4">
+                          <h3 className="text-sm font-semibold mb-2">Category-wise Issues</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {Object.entries(storeStats[selectedStore].categoryIssues)
+                              .sort((a, b) => b[1].total - a[1].total)
+                              .map(([category, stats]) => (
+                                <div key={category} className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                                  <p className="font-medium text-sm mb-1">{category}</p>
+                                  <div className="flex items-center justify-between text-xs sm:text-sm">
+                                    <span className="text-muted-foreground">Total: {stats.total}</span>
+                                    <span className="text-green-600 dark:text-green-400">
+                                      Fixed: {stats.fixed} ({stats.total > 0 ? ((stats.fixed / stats.total) * 100).toFixed(1) : 100}%)
+                                    </span>
+                                  </div>
+                                  <div className="mt-2 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full bg-green-500 dark:bg-green-400 rounded-full"
+                                      style={{ width: `${(stats.fixed / stats.total) * 100}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Recent Trend */}
+                      {storeStats[selectedStore]?.totalInspections > 1 && (
+                        <div className="col-span-full mt-4">
+                          <h3 className="text-sm font-semibold mb-2">Recent Trend</h3>
+                          <div className="p-3 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm mb-2">
+                              <span className="text-muted-foreground">Last 3 Inspections</span>
+                              <span className="text-blue-600 dark:text-blue-400 mt-1 sm:mt-0">
+                                {storeStats[selectedStore].inspectionFrequency} days avg. interval
+                              </span>
+                            </div>
+                            <div className="space-y-2">
+                              {inspections
+                                .filter(i => i.storeNumber === selectedStore)
+                                .sort((a, b) => new Date(b.inspectionDate) - new Date(a.inspectionDate))
+                                .slice(0, 3)
+                                .map((inspection, index) => {
+                                  const issueCount = inspection.categories?.reduce((count, category) =>
+                                    count + (category.items?.filter(item => item.status === "no").length || 0), 0) || 0;
+                                  const fixedCount = inspection.categories?.reduce((count, category) =>
+                                    count + (category.items?.filter(item => item.status === "no" && item.fixed).length || 0), 0) || 0;
+
+                                  return (
+                                    <div key={inspection.id} className="flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm">
+                                      <span className="text-muted-foreground">
+                                        {new Date(inspection.inspectionDate).toLocaleDateString()}
+                                      </span>
+                                      <div className="flex items-center gap-2 mt-1 sm:mt-0">
+                                        <span className={issueCount === 0 ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"}>
+                                          {issueCount} issues
+                                        </span>
+                                        {issueCount > 0 && (
+                                          <span className="text-blue-600 dark:text-blue-400">
+                                            ({fixedCount} fixed)
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -1361,20 +1844,20 @@ export default function AdminDashboard() {
             className="w-full"
             onValueChange={setActiveTab}
           >
-            <TabsList className="mb-6">
+            <TabsList className="mb-4 sm:mb-6 w-full sm:w-auto">
               <TabsTrigger
                 value="inspections"
-                className="flex items-center gap-2 data-[state=active]:bg-blue-100 dark:data-[state=active]:bg-blue-900/50 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300"
+                className="flex-1 sm:flex-none flex items-center gap-2 data-[state=active]:bg-blue-100 dark:data-[state=active]:bg-blue-900/50 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-300"
               >
-                <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400 transition-transform duration-200 group-hover:scale-110" />
-                <span className="font-medium">Inspections</span>
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400 transition-transform duration-200 group-hover:scale-110" />
+                <span className="font-medium text-sm sm:text-base">Inspections</span>
               </TabsTrigger>
               <TabsTrigger
                 value="categories"
-                className="flex items-center gap-2 data-[state=active]:bg-purple-100 dark:data-[state=active]:bg-purple-900/50 data-[state=active]:text-purple-700 dark:data-[state=active]:text-purple-300"
+                className="flex-1 sm:flex-none flex items-center gap-2 data-[state=active]:bg-purple-100 dark:data-[state=active]:bg-purple-900/50 data-[state=active]:text-purple-700 dark:data-[state=active]:text-purple-300"
               >
-                <Database className="h-5 w-5 text-purple-600 dark:text-purple-400 transition-transform duration-200 group-hover:scale-110" />
-                <span className="font-medium">Categories & Items</span>
+                <Database className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 dark:text-purple-400 transition-transform duration-200 group-hover:scale-110" />
+                <span className="font-medium text-sm sm:text-base">Categories & Items</span>
               </TabsTrigger>
             </TabsList>
 
@@ -1553,6 +2036,21 @@ export default function AdminDashboard() {
           inspection={selectedInspection}
           open={showNoIssuesDialog}
           onOpenChange={setShowNoIssuesDialog}
+        />
+
+        {/* Store Comparison Dialog */}
+        <StoreComparisonDialog
+          stores={uniqueStores}
+          storeStats={storeStats}
+          open={showStoreComparison}
+          onOpenChange={setShowStoreComparison}
+        />
+
+        {/* Issue Trends Dialog */}
+        <IssueTrendsDialog
+          inspections={inspections}
+          open={showIssueTrends}
+          onOpenChange={setShowIssueTrends}
         />
       </div>
     </div>
